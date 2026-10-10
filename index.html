@@ -1,0 +1,2394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ForexFlip — Premium USDT to INR Exchange & Payout Platform</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        navy: {
+                            800: '#102a43',
+                            900: '#0b1d2e',
+                        },
+                        brandBlue: '#2563eb',
+                        brandTeal: '#0d9488',
+                        brandBg: '#f5f8fc',
+                        mainText: '#172b4d',
+                        mutedText: '#64748b',
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome & Lucide Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- html2pdf for receipt downloads -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f5f8fc;
+            color: #172b4d;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        .animate-pulse-subtle {
+            animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+    </style>
+</head>
+<body class="bg-[#f5f8fc] min-h-screen flex flex-col justify-between selection:bg-blue-500 selection:text-white">
+
+    <!-- Top Global Header -->
+    <header class="bg-[#102a43] text-white sticky top-0 z-40 shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <!-- Brand Logo -->
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="app.navigateTo('exchange')">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-teal-400 flex items-center justify-center font-black text-xl text-white shadow-lg shadow-blue-500/30">
+                    F
+                </div>
+                <div>
+                    <span class="text-xl font-bold tracking-tight text-white">Forex<span class="text-teal-400">Flip</span></span>
+                    <span class="block text-[10px] text-gray-400 -mt-1 font-medium tracking-wider uppercase">USDT • INR Settlement</span>
+                </div>
+            </div>
+
+            <!-- Rate Badge & Mode Indicator -->
+            <div class="hidden md:flex items-center space-x-4">
+                <div class="bg-navy-900/80 border border-blue-500/30 rounded-full px-3 py-1 flex items-center space-x-2 text-xs">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                    <span class="text-gray-300">Live Rate:</span>
+                    <span class="font-bold text-teal-300" id="headerLiveRate">₹99.00 / USDT</span>
+                </div>
+                <div id="firebaseConfigBadge" class="bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 px-2.5 py-1 rounded-full text-xs flex items-center space-x-1">
+                    <i class="fa-solid fa-server text-[10px]"></i>
+                    <span id="configBadgeText">Local State Persistent</span>
+                </div>
+            </div>
+
+            <!-- Right Nav / User Controls -->
+            <div class="flex items-center space-x-3">
+                <div id="authNavButtons" class="flex items-center space-x-2">
+                    <button onclick="app.openAuthModal('login')" class="px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-navy-800 hover:bg-slate-800 text-gray-200 border border-slate-700 transition">
+                        Login
+                    </button>
+                    <button onclick="app.openAuthModal('register')" class="px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-600/30 transition">
+                        Register
+                    </button>
+                    <button onclick="app.openAuthModal('owner')" class="px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-amber-600/20 text-amber-300 hover:bg-amber-600/30 border border-amber-500/30 transition">
+                        <i class="fa-solid fa-shield-halved mr-1"></i> Owner
+                    </button>
+                </div>
+
+                <div id="userNavMenu" class="hidden items-center space-x-3">
+                    <div class="text-right hidden sm:block">
+                        <span id="navUsername" class="block text-xs font-semibold text-gray-200">User</span>
+                        <span id="navUserEmail" class="block text-[10px] text-gray-400 truncate max-w-[120px]">user@domain.com</span>
+                    </div>
+                    <div id="adminBadge" class="hidden px-2 py-0.5 text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/40 rounded font-mono font-bold">
+                        ADMIN
+                    </div>
+                    <button onclick="app.logout()" class="p-2 text-gray-400 hover:text-red-400 hover:bg-navy-800 rounded-lg transition" title="Logout">
+                        <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow w-full">
+        
+        <!-- System Maintenance Banner -->
+        <div id="maintenanceBanner" class="hidden mb-6 bg-amber-500/10 border border-amber-500/30 rounded-2xl p-4 text-amber-800 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <i class="fa-solid fa-triangle-exclamation text-amber-600 text-xl"></i>
+                <div>
+                    <h4 class="font-bold text-sm">System Under Maintenance / New Conversions Paused</h4>
+                    <p class="text-xs text-amber-700" id="maintenanceMsg">The admin has temporarily paused new USDT conversions for rate adjustment.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Landing Screen for Guests -->
+        <section id="guestLandingView" class="py-8">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                <div class="lg:col-span-7 space-y-6">
+                    <div class="inline-flex items-center space-x-2 bg-blue-50 border border-blue-200 text-blue-700 px-3 py-1.5 rounded-full text-xs font-semibold">
+                        <i class="fa-solid fa-bolt text-teal-500"></i>
+                        <span>Instant USDT to INR Direct Payout Settlement</span>
+                    </div>
+                    <h1 class="text-3xl sm:text-5xl font-extrabold text-[#102a43] leading-tight">
+                        Exchange USDT to INR <br>
+                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-teal-600">Zero Hidden Markup</span>
+                    </h1>
+                    <p class="text-slate-600 text-sm sm:text-base leading-relaxed max-w-2xl">
+                        ForexFlip offers bulletproof USDT settlement into Indian Bank accounts, UPI, and FamPay. Locked exchange quotes, instant review, full transaction auditability, and dedicated customer assistance.
+                    </p>
+
+                    <!-- Features grid -->
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-2">
+                        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                            <i class="fa-solid fa-shield-check text-blue-600 text-xl mb-1"></i>
+                            <h4 class="font-bold text-xs text-slate-800">Fixed Rate Locks</h4>
+                            <p class="text-[11px] text-slate-500">Rate locked for 15 minutes</p>
+                        </div>
+                        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                            <i class="fa-solid fa-bolt text-teal-600 text-xl mb-1"></i>
+                            <h4 class="font-bold text-xs text-slate-800">Multi-Chain</h4>
+                            <p class="text-[11px] text-slate-500">Binance, TRC20, BEP20, LTC</p>
+                        </div>
+                        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm col-span-2 sm:col-span-1">
+                            <i class="fa-solid fa-building-columns text-indigo-600 text-xl mb-1"></i>
+                            <h4 class="font-bold text-xs text-slate-800">Direct INR</h4>
+                            <p class="text-[11px] text-slate-500">UPI, Bank IMPS, FamPay</p>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-3 pt-4">
+                        <button onclick="app.openAuthModal('register')" class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20 transition flex items-center space-x-2">
+                            <span>Get Started Now</span>
+                            <i class="fa-solid fa-arrow-right text-xs"></i>
+                        </button>
+                        <button onclick="app.openAuthModal('login')" class="px-6 py-3 bg-white hover:bg-slate-50 text-slate-700 font-bold rounded-xl border border-slate-300 transition">
+                            Sign In to Dashboard
+                        </button>
+                        <button onclick="app.openAuthModal('owner')" class="px-4 py-3 bg-slate-200/80 hover:bg-slate-300 text-slate-800 font-semibold rounded-xl text-xs flex items-center space-x-1.5 transition">
+                            <i class="fa-solid fa-key text-amber-600"></i>
+                            <span>Owner Access</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Calculator Preview Box -->
+                <div class="lg:col-span-5">
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-xl relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-32 h-32 bg-teal-500/10 rounded-full blur-2xl pointer-events-none"></div>
+                        <div class="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
+                            <h3 class="font-bold text-slate-800 text-sm uppercase tracking-wider flex items-center gap-2">
+                                <i class="fa-solid fa-calculator text-blue-600"></i> Quick Conversion Preview
+                            </h3>
+                            <span class="text-xs bg-emerald-50 text-emerald-700 font-semibold px-2.5 py-0.5 rounded-full border border-emerald-200">
+                                Live Rate: ₹<span class="previewRate">99.00</span>
+                            </span>
+                        </div>
+
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1">You Send (USDT)</label>
+                                <div class="relative">
+                                    <input type="number" id="landingUsdtInput" value="100" oninput="app.updateLandingCalc()" class="w-full bg-slate-50 border border-slate-300 rounded-xl py-3 px-4 text-slate-800 font-bold text-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                    <span class="absolute right-3 top-3.5 text-xs font-bold text-slate-400 bg-slate-200 px-2 py-0.5 rounded">USDT</span>
+                                </div>
+                            </div>
+
+                            <div class="flex justify-center -my-2">
+                                <div class="bg-blue-50 text-blue-600 w-8 h-8 rounded-full flex items-center justify-center border border-blue-200 shadow-sm">
+                                    <i class="fa-solid fa-arrow-down text-xs"></i>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1">You Receive (INR)</label>
+                                <div class="relative">
+                                    <input type="text" id="landingInrOutput" readonly value="₹ 9,900.00" class="w-full bg-slate-100 border border-slate-200 rounded-xl py-3 px-4 text-emerald-700 font-extrabold text-xl focus:outline-none">
+                                    <span class="absolute right-3 top-3.5 text-xs font-bold text-slate-400 bg-slate-200 px-2 py-0.5 rounded">INR</span>
+                                </div>
+                            </div>
+
+                            <div class="text-[11px] text-slate-500 space-y-1 bg-slate-50 p-3 rounded-lg">
+                                <div class="flex justify-between">
+                                    <span>Applied Fee Rate:</span>
+                                    <span class="font-semibold text-slate-700" id="landingFeeDisplay">0.00%</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Guaranteed Net Payout:</span>
+                                    <span class="font-bold text-emerald-600" id="landingNetPayout">₹ 9,900.00</span>
+                                </div>
+                            </div>
+
+                            <button onclick="app.openAuthModal('register')" class="w-full py-3 bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700 text-white font-bold rounded-xl shadow-md transition text-sm">
+                                Register to Complete Conversion
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- User Main Dashboard View (Authenticated) -->
+        <section id="userDashboardView" class="hidden">
+            
+            <!-- 5 Primary Dashboard Navigation Bar -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-2 mb-6">
+                <nav class="grid grid-cols-5 gap-1 text-center" id="dashboardTabs">
+                    <button onclick="app.navigateTo('exchange')" id="tab-exchange" class="tab-btn py-3 px-2 sm:px-4 rounded-xl text-xs sm:text-sm font-bold flex flex-col sm:flex-row items-center justify-center space-y-1 sm:space-y-0 sm:space-x-2 transition text-blue-600 bg-blue-50 border border-blue-200">
+                        <i class="fa-solid fa-right-left text-base sm:text-sm"></i>
+                        <span>EXCHANGE</span>
+                    </button>
+                    <button onclick="app.navigateTo('vouchers')" id="tab-vouchers" class="tab-btn py-3 px-2 sm:px-4 rounded-xl text-xs sm:text-sm font-bold flex flex-col sm:flex-row items-center justify-center space-y-1 sm:space-y-0 sm:space-x-2 transition text-slate-600 hover:bg-slate-50">
+                        <i class="fa-solid fa-receipt text-base sm:text-sm"></i>
+                        <span>VOUCHERS</span>
+                    </button>
+                    <button onclick="app.navigateTo('wallet')" id="tab-wallet" class="tab-btn py-3 px-2 sm:px-4 rounded-xl text-xs sm:text-sm font-bold flex flex-col sm:flex-row items-center justify-center space-y-1 sm:space-y-0 sm:space-x-2 transition text-slate-600 hover:bg-slate-50">
+                        <i class="fa-solid fa-wallet text-base sm:text-sm"></i>
+                        <span>WALLET</span>
+                    </button>
+                    <button onclick="app.navigateTo('support')" id="tab-support" class="tab-btn py-3 px-2 sm:px-4 rounded-xl text-xs sm:text-sm font-bold flex flex-col sm:flex-row items-center justify-center space-y-1 sm:space-y-0 sm:space-x-2 transition text-slate-600 hover:bg-slate-50">
+                        <i class="fa-solid fa-headset text-base sm:text-sm"></i>
+                        <span>SUPPORT</span>
+                    </button>
+                    <button onclick="app.navigateTo('profile')" id="tab-profile" class="tab-btn py-3 px-2 sm:px-4 rounded-xl text-xs sm:text-sm font-bold flex flex-col sm:flex-row items-center justify-center space-y-1 sm:space-y-0 sm:space-x-2 transition text-slate-600 hover:bg-slate-50">
+                        <i class="fa-solid fa-user-gear text-base sm:text-sm"></i>
+                        <span>PROFILE</span>
+                    </button>
+                </nav>
+            </div>
+
+            <!-- TAB 1: EXCHANGE CONTENT -->
+            <div id="content-exchange" class="tab-content">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    
+                    <!-- Left: Exchange Panel -->
+                    <div class="lg:col-span-7 space-y-6">
+                        <!-- Step 1: Calculate & Network Selection -->
+                        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-5">
+                            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                                <h3 class="font-extrabold text-slate-800 text-base flex items-center gap-2">
+                                    <span class="w-6 h-6 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center">1</span>
+                                    Calculate & Select Network
+                                </h3>
+                                <span class="text-xs bg-slate-100 text-slate-700 px-2.5 py-1 rounded-lg font-medium">
+                                    Locked Rate: <strong class="text-blue-600" id="exchangeRateBadge">₹99.00</strong> / USDT
+                                </span>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">USDT Amount to Convert</label>
+                                    <div class="relative">
+                                        <input type="number" id="calcUsdtAmount" value="50" min="1" step="any" oninput="app.calculateUserExchange()" class="w-full bg-slate-50 border border-slate-300 rounded-xl py-2.5 px-3 font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                        <span class="absolute right-3 top-2.5 text-xs font-bold text-slate-400">USDT</span>
+                                    </div>
+                                    <span class="text-[10px] text-slate-500 mt-1 block">Min: <span id="minOrderLimit">10</span> USDT | Max: <span id="maxOrderLimit">10000</span> USDT</span>
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">Estimated INR Output</label>
+                                    <div class="relative">
+                                        <input type="text" id="calcInrOutput" readonly class="w-full bg-slate-100 border border-slate-200 rounded-xl py-2.5 px-3 font-extrabold text-emerald-600 focus:outline-none">
+                                        <span class="absolute right-3 top-2.5 text-xs font-bold text-slate-400">INR</span>
+                                    </div>
+                                    <span class="text-[10px] text-slate-500 mt-1 block" id="calcFeeNotice">Fee: 0.00% included</span>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-2">Deposit Crypto Network / Method</label>
+                                <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5" id="networkSelectionGrid">
+                                    <!-- Dynamic Methods Populated via JavaScript -->
+                                </div>
+                            </div>
+
+                            <button id="lockQuoteBtn" onclick="app.lockExchangeQuote()" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-md transition flex items-center justify-center space-x-2">
+                                <i class="fa-solid fa-lock text-xs"></i>
+                                <span>Lock Quote & Proceed to Deposit</span>
+                            </button>
+                        </div>
+
+                        <!-- Step 2: Deposit Address & Timer (Shown after Quote Lock) -->
+                        <div id="depositStepCard" class="hidden bg-white p-6 rounded-2xl border border-blue-200 shadow-md space-y-5 relative overflow-hidden">
+                            <div class="bg-blue-600 text-white p-4 rounded-xl flex items-center justify-between">
+                                <div>
+                                    <h4 class="font-bold text-sm">Active Deposit Session</h4>
+                                    <p class="text-xs text-blue-100">Send exact USDT to the network address below</p>
+                                </div>
+                                <div class="bg-white/20 px-3 py-1.5 rounded-lg text-center backdrop-blur-sm">
+                                    <span class="block text-[10px] text-blue-100 uppercase font-semibold">Quote Expiry</span>
+                                    <span id="sessionTimer" class="font-mono font-extrabold text-base text-yellow-300">15:00</span>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-center bg-slate-50 p-4 rounded-xl border border-slate-200">
+                                <div class="md:col-span-4 flex flex-col items-center justify-center bg-white p-3 rounded-lg border border-slate-200">
+                                    <img id="depositQrImage" src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=ForexFlip" alt="Deposit QR Code" class="w-32 h-32 object-contain">
+                                    <span class="text-[10px] text-slate-500 mt-1 font-semibold" id="qrNetworkLabel">TRC20 Network</span>
+                                </div>
+                                <div class="md:col-span-8 space-y-3">
+                                    <div>
+                                        <span class="text-xs font-semibold text-slate-500 block">Selected Method:</span>
+                                        <span id="depositMethodTitle" class="font-bold text-slate-800 text-sm">TRC20 Network</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-xs font-semibold text-slate-500 block">Admin Deposit Address / ID:</span>
+                                        <div class="flex items-center space-x-2 mt-1">
+                                            <input type="text" id="depositAddressInput" readonly class="w-full bg-white border border-slate-300 rounded-lg py-1.5 px-2.5 text-xs font-mono font-bold text-slate-700">
+                                            <button onclick="app.copyDepositAddress()" class="px-3 py-1.5 bg-slate-800 text-white rounded-lg text-xs font-semibold hover:bg-slate-700 shrink-0">
+                                                Copy
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="bg-amber-50 border border-amber-200 rounded-lg p-2.5 text-[11px] text-amber-800 flex items-start space-x-2">
+                                        <i class="fa-solid fa-triangle-exclamation text-amber-600 mt-0.5 shrink-0"></i>
+                                        <span>Warning: Do NOT send Flash USDT or unsupported chain tokens. Late submissions require manual review.</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Submit Voucher Form -->
+                    <div class="lg:col-span-5">
+                        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-5 sticky top-20">
+                            <div class="border-b border-slate-100 pb-3">
+                                <h3 class="font-extrabold text-slate-800 text-base flex items-center gap-2">
+                                    <span class="w-6 h-6 rounded-full bg-teal-600 text-white text-xs flex items-center justify-center">2</span>
+                                    Submit Payment Proof & Payout Info
+                                </h3>
+                                <p class="text-xs text-slate-500 mt-0.5">Upload receipt and configure destination INR payout</p>
+                            </div>
+
+                            <form id="voucherSubmitForm" onsubmit="app.submitVoucherOrder(event)" class="space-y-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">Transaction Hash / TxID / Binance Pay ID *</label>
+                                    <input type="text" id="formTxHash" required placeholder="e.g. 8a3f...92e1 or Binance Pay ID" class="w-full bg-slate-50 border border-slate-300 rounded-xl py-2 px-3 text-xs font-mono focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">Your Sending Address / Binance Account ID</label>
+                                    <input type="text" id="formSenderAddress" placeholder="e.g. TXYZ... or Binance Email/ID" class="w-full bg-slate-50 border border-slate-300 rounded-xl py-2 px-3 text-xs font-mono focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">Upload Payment Screenshot / Proof *</label>
+                                    <input type="file" id="formProofFile" accept="image/*" required onchange="app.handleProofUpload(event)" class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                                    <div id="proofPreviewContainer" class="hidden mt-2 relative">
+                                        <img id="proofPreviewImg" src="" alt="Proof Preview" class="w-full h-24 object-cover rounded-lg border border-slate-300">
+                                    </div>
+                                </div>
+
+                                <hr class="border-slate-100">
+
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">INR Payout Method *</label>
+                                    <select id="payoutMethodSelect" onchange="app.togglePayoutFields()" class="w-full bg-slate-50 border border-slate-300 rounded-xl py-2 px-3 text-xs font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                        <option value="upi">UPI Transfer</option>
+                                        <option value="fampay">FamPay Identifier</option>
+                                        <option value="bank">Bank Transfer (IMPS/NEFT)</option>
+                                    </select>
+                                </div>
+
+                                <!-- Dynamic Payout Fields -->
+                                <div id="payoutFieldsUPI" class="space-y-3">
+                                    <div>
+                                        <label class="block text-xs font-semibold text-slate-600 mb-1">UPI Holder Full Name</label>
+                                        <input type="text" id="upiHolderName" placeholder="e.g. Rahul Sharma" class="w-full bg-slate-50 border border-slate-300 rounded-xl py-2 px-3 text-xs">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-semibold text-slate-600 mb-1">UPI ID (VPA)</label>
+                                        <input type="text" id="upiId" placeholder="e.g. rahul@okaxis" class="w-full bg-slate-50 border border-slate-300 rounded-xl py-2 px-3 text-xs">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-semibold text-slate-600 mb-1">Confirm UPI ID</label>
+                                        <input type="text" id="upiIdConfirm" placeholder="Re-enter UPI ID" class="w-full bg-slate-50 border border-slate-300 rounded-xl py-2 px-3 text-xs">
+                                    </div>
+                                </div>
+
+                                <div id="payoutFieldsFamPay" class="hidden space-y-3">
+                                    <div>
+                                        <label class="block text-xs font-semibold text-slate-600 mb-1">FamPay Holder Name</label>
+                                        <input type="text" id="famHolderName" placeholder="Full name as registered" class="w-full bg-slate-50 border border-slate-300 rounded-xl py-2 px-3 text-xs">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-semibold text-slate-600 mb-1">FamPay UPI / Identifier</label>
+                                        <input type="text" id="famId" placeholder="e.g. username@fam" class="w-full bg-slate-50 border border-slate-300 rounded-xl py-2 px-3 text-xs">
+                                    </div>
+                                </div>
+
+                                <div id="payoutFieldsBank" class="hidden space-y-3">
+                                    <div>
+                                        <label class="block text-xs font-semibold text-slate-600 mb-1">Bank Account Holder Name</label>
+                                        <input type="text" id="bankHolderName" placeholder="e.g. Rahul Sharma" class="w-full bg-slate-50 border border-slate-300 rounded-xl py-2 px-3 text-xs">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-semibold text-slate-600 mb-1">Bank Account Number</label>
+                                        <input type="password" id="bankAccountNumber" placeholder="Account Number" class="w-full bg-slate-50 border border-slate-300 rounded-xl py-2 px-3 text-xs">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-semibold text-slate-600 mb-1">IFSC Code</label>
+                                        <input type="text" id="bankIfsc" placeholder="e.g. SBIN0001234" class="w-full bg-slate-50 border border-slate-300 rounded-xl py-2 px-3 text-xs uppercase">
+                                    </div>
+                                </div>
+
+                                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-[11px] text-slate-600 space-y-1">
+                                    <div class="flex justify-between">
+                                        <span>Order Amount:</span>
+                                        <span class="font-bold text-slate-800" id="summaryUsdt">50.00 USDT</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span>Expected Net INR Payout:</span>
+                                        <span class="font-extrabold text-emerald-600" id="summaryInr">₹ 4,950.00</span>
+                                    </div>
+                                </div>
+
+                                <button type="submit" id="submitOrderBtn" disabled class="w-full py-3 bg-teal-600 hover:bg-teal-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold rounded-xl shadow-md transition text-xs flex items-center justify-center space-x-2">
+                                    <i class="fa-solid fa-paper-plane"></i>
+                                    <span>Submit Voucher for Review</span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: VOUCHERS CONTENT -->
+            <div id="content-vouchers" class="tab-content hidden">
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-6">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+                        <div>
+                            <h3 class="font-extrabold text-slate-800 text-lg">Your Voucher & Exchange History</h3>
+                            <p class="text-xs text-slate-500">Track verification status, payout releases, and download receipts</p>
+                        </div>
+                        
+                        <!-- Quick Filters -->
+                        <div class="flex flex-wrap items-center gap-2">
+                            <button onclick="app.filterVouchers('all')" class="v-filter-btn text-xs px-3 py-1.5 rounded-lg border bg-blue-600 text-white border-blue-600 font-semibold">
+                                All
+                            </button>
+                            <button onclick="app.filterVouchers('last5')" class="v-filter-btn text-xs px-3 py-1.5 rounded-lg border bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200 font-semibold">
+                                Last 5 Days
+                            </button>
+                            <button onclick="app.filterVouchers('UNDER_REVIEW')" class="v-filter-btn text-xs px-3 py-1.5 rounded-lg border bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200 font-semibold">
+                                Pending
+                            </button>
+                            <button onclick="app.filterVouchers('COMPLETED')" class="v-filter-btn text-xs px-3 py-1.5 rounded-lg border bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200 font-semibold">
+                                Completed
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Search Input -->
+                    <div class="max-w-md">
+                        <div class="relative">
+                            <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-xs"></i>
+                            <input type="text" id="voucherSearchInput" oninput="app.searchVouchers()" placeholder="Search by Order ID or TxHash..." class="w-full bg-slate-50 border border-slate-300 rounded-xl py-2 pl-9 pr-3 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        </div>
+                    </div>
+
+                    <!-- Orders Table -->
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-slate-200 bg-slate-50/50 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                                    <th class="p-3">Order ID</th>
+                                    <th class="p-3">Date & Time</th>
+                                    <th class="p-3">USDT Amount</th>
+                                    <th class="p-3">Locked Rate</th>
+                                    <th class="p-3">Expected INR</th>
+                                    <th class="p-3">Network</th>
+                                    <th class="p-3">Status</th>
+                                    <th class="p-3 text-right">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="vouchersTableBody" class="divide-y divide-slate-100 text-xs font-medium text-slate-700">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Empty State -->
+                    <div id="vouchersEmptyState" class="hidden py-12 text-center space-y-3">
+                        <div class="w-12 h-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto text-xl">
+                            <i class="fa-solid fa-receipt"></i>
+                        </div>
+                        <h4 class="font-bold text-slate-700 text-sm">No Voucher Submissions Found</h4>
+                        <p class="text-xs text-slate-500 max-w-sm mx-auto">You haven't initiated any exchange vouchers matching this query.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: WALLET CONTENT (READ-ONLY) -->
+            <div id="content-wallet" class="tab-content hidden space-y-6">
+                <!-- Summary Metrics Cards -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-1">
+                        <div class="flex items-center justify-between text-slate-500 text-xs font-semibold">
+                            <span>Total INR Settled</span>
+                            <i class="fa-solid fa-indian-rupee-sign text-emerald-600"></i>
+                        </div>
+                        <div class="text-2xl font-extrabold text-slate-900" id="walletTotalInr">₹0.00</div>
+                        <p class="text-[10px] text-slate-400">Completed payouts only</p>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-1">
+                        <div class="flex items-center justify-between text-slate-500 text-xs font-semibold">
+                            <span>Total USDT Converted</span>
+                            <i class="fa-solid fa-coins text-blue-600"></i>
+                        </div>
+                        <div class="text-2xl font-extrabold text-slate-900" id="walletTotalUsdt">0.00 USDT</div>
+                        <p class="text-[10px] text-slate-400">Completed orders only</p>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-1">
+                        <div class="flex items-center justify-between text-slate-500 text-xs font-semibold">
+                            <span>Pending Payouts</span>
+                            <i class="fa-solid fa-clock text-amber-500"></i>
+                        </div>
+                        <div class="text-2xl font-extrabold text-amber-600" id="walletPendingInr">₹0.00</div>
+                        <p class="text-[10px] text-slate-400">Orders currently in review/processing</p>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-1">
+                        <div class="flex items-center justify-between text-slate-500 text-xs font-semibold">
+                            <span>Total Orders Count</span>
+                            <i class="fa-solid fa-list-check text-indigo-600"></i>
+                        </div>
+                        <div class="text-2xl font-extrabold text-slate-900" id="walletTotalCount">0</div>
+                        <p class="text-[10px] text-slate-400">Lifetime user exchange submissions</p>
+                    </div>
+                </div>
+
+                <!-- Informational Note & Statement Download -->
+                <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+                        <div>
+                            <h3 class="font-extrabold text-slate-800 text-base">Financial Activity Summary Statement</h3>
+                            <p class="text-xs text-slate-500">Read-only account statement derived directly from authoritative ledger records.</p>
+                        </div>
+                        <button onclick="app.downloadWalletStatement()" class="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold rounded-xl shadow transition flex items-center space-x-2">
+                            <i class="fa-solid fa-file-pdf text-red-400"></i>
+                            <span>Download Statement Report</span>
+                        </button>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-slate-200 bg-slate-50 text-[11px] font-bold text-slate-500 uppercase">
+                                    <th class="p-3">Timestamp</th>
+                                    <th class="p-3">Order ID</th>
+                                    <th class="p-3">USDT Amount</th>
+                                    <th class="p-3">INR Payout</th>
+                                    <th class="p-3">Payout Method</th>
+                                    <th class="p-3">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="walletActivityBody" class="divide-y divide-slate-100 text-xs font-medium text-slate-700">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 4: SUPPORT CONTENT (4 VISUALLY DISTINCT OPTIONS) -->
+            <div id="content-support" class="tab-content hidden space-y-6">
+                <div class="text-center max-w-2xl mx-auto space-y-2">
+                    <h2 class="text-2xl font-extrabold text-slate-900">ForexFlip Customer Support Hub</h2>
+                    <p class="text-xs text-slate-600">Choose your preferred support desk channel below for instant help regarding your conversions.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    
+                    <!-- Option A: Telegram Assist (Green Button) -->
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-4">
+                        <div class="space-y-2">
+                            <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center text-xl">
+                                <i class="fa-brands fa-telegram"></i>
+                            </div>
+                            <h3 class="font-extrabold text-slate-800 text-base" id="supportTgAssistName">Telegram Assist</h3>
+                            <p class="text-xs text-slate-500" id="supportTgAssistDesc">Very fast support desk for live transaction queries and manual reviews.</p>
+                        </div>
+                        <a id="supportTgAssistBtn" href="https://t.me/ImNova18" target="_blank" rel="noopener noreferrer" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl text-center shadow-md shadow-emerald-600/20 transition block">
+                            <i class="fa-brands fa-telegram mr-1.5"></i> Open Telegram Assist
+                        </a>
+                    </div>
+
+                    <!-- Option B: Telegram Bot (Yellow Button) -->
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-4">
+                        <div class="space-y-2">
+                            <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center text-xl">
+                                <i class="fa-solid fa-robot"></i>
+                            </div>
+                            <h3 class="font-extrabold text-slate-800 text-base" id="supportTgBotName">Telegram Bot Support</h3>
+                            <p class="text-xs text-slate-500" id="supportTgBotDesc">Automated status checker bot for real-time order updates.</p>
+                        </div>
+                        <a id="supportTgBotBtn" href="https://t.me/AssisByNova_Bot" target="_blank" rel="noopener noreferrer" class="w-full py-3 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs rounded-xl text-center shadow-md shadow-amber-500/20 transition block">
+                            <i class="fa-solid fa-robot mr-1.5"></i> Launch Telegram Bot
+                        </a>
+                    </div>
+
+                    <!-- Option C: AI Chat Support (Interactive Modal/Widget) -->
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-4">
+                        <div class="space-y-2">
+                            <div class="w-10 h-10 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center text-xl">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                            </div>
+                            <h3 class="font-extrabold text-slate-800 text-base">AI Chat Support</h3>
+                            <p class="text-xs text-slate-500">Interactive FAQ assistance & automated order escalation to human review.</p>
+                        </div>
+                        <button onclick="app.openAiChatSupportModal()" class="w-full py-3 bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs rounded-xl text-center shadow-md shadow-purple-600/20 transition">
+                            <i class="fa-solid fa-comments mr-1.5"></i> Start AI Virtual Assistant
+                        </button>
+                    </div>
+
+                    <!-- Option D: NEWS (BLUE BUTTON #2563EB) -->
+                    <div id="newsSupportCard" class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-4">
+                        <div class="space-y-2">
+                            <div class="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center text-xl">
+                                <i class="fa-solid fa-newspaper"></i>
+                            </div>
+                            <h3 class="font-extrabold text-slate-800 text-base" id="newsDisplayName">Official News Channel</h3>
+                            <p class="text-xs text-slate-500" id="newsDisplayDesc">Join our official channel for rate updates, announcements, and maintenance alerts.</p>
+                        </div>
+                        <!-- NEWS button MUST be blue (#2563EB) -->
+                        <a id="newsChannelBtn" href="https://t.me/ImNova18" target="_blank" rel="noopener noreferrer" class="w-full py-3 bg-[#2563EB] hover:bg-blue-700 text-white font-bold text-xs rounded-xl text-center shadow-md shadow-blue-600/30 transition block">
+                            <i class="fa-solid fa-bullhorn mr-1.5"></i> Join Official NEWS Channel
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- TAB 5: PROFILE CONTENT -->
+            <div id="content-profile" class="tab-content hidden max-w-3xl mx-auto">
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-6">
+                    <div class="border-b border-slate-100 pb-4 flex items-center justify-between">
+                        <div>
+                            <h3 class="font-extrabold text-slate-800 text-lg">Your Profile & Account Overview</h3>
+                            <p class="text-xs text-slate-500">Manage account credentials and view personal platform metrics</p>
+                        </div>
+                        <div class="w-12 h-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-lg" id="profileAvatar">
+                            U
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                            <span class="text-[11px] font-semibold text-slate-500 block">Username</span>
+                            <span class="font-bold text-slate-800 text-sm" id="profileUsername">--</span>
+                        </div>
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                            <span class="text-[11px] font-semibold text-slate-500 block">Registered Email</span>
+                            <span class="font-bold text-slate-800 text-sm" id="profileEmail">--</span>
+                        </div>
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                            <span class="text-[11px] font-semibold text-slate-500 block">User UID</span>
+                            <span class="font-mono text-xs text-slate-700 font-bold break-all" id="profileUid">--</span>
+                        </div>
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                            <span class="text-[11px] font-semibold text-slate-500 block">Member Since</span>
+                            <span class="font-bold text-slate-800 text-sm" id="profileJoinDate">--</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-blue-50/60 p-4 rounded-xl border border-blue-200 space-y-2">
+                        <div class="flex items-center justify-between text-xs">
+                            <span class="font-semibold text-slate-700">Active Global Exchange Rate</span>
+                            <span class="font-bold text-blue-700" id="profileActiveRate">₹99.00 / USDT</span>
+                        </div>
+                        <div class="flex items-center justify-between text-[11px] text-slate-500">
+                            <span>Rate Last Updated</span>
+                            <span id="profileRateTimestamp">Just now</span>
+                        </div>
+                    </div>
+
+                    <div class="pt-2 border-t border-slate-100">
+                        <h4 class="font-bold text-slate-800 text-sm mb-3">Security & Password</h4>
+                        <button onclick="app.requestPasswordReset()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl border border-slate-300 transition flex items-center space-x-2">
+                            <i class="fa-solid fa-key"></i>
+                            <span>Send Password Reset Link</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- OWNER / ADMIN PANEL (PROTECTED) -->
+        <section id="adminPanelView" class="hidden space-y-6">
+            
+            <div class="bg-navy-800 text-white p-6 rounded-2xl shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <div class="flex items-center space-x-2">
+                        <span class="bg-amber-500 text-navy-900 font-extrabold text-[10px] px-2 py-0.5 rounded uppercase">Owner Portal</span>
+                        <h2 class="text-xl font-bold">ForexFlip Executive Management Panel</h2>
+                    </div>
+                    <p class="text-xs text-slate-300 mt-1">Full control over exchange rates, vouchers, payout queues, and Firebase configurations.</p>
+                </div>
+
+                <div class="flex items-center space-x-2">
+                    <button onclick="app.navigateTo('exchange')" class="px-3.5 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-xl text-xs font-semibold transition">
+                        <i class="fa-solid fa-eye mr-1"></i> User View
+                    </button>
+                </div>
+            </div>
+
+            <!-- Admin Navigation Tabs -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-2 overflow-x-auto custom-scrollbar">
+                <div class="flex space-x-1 min-w-max">
+                    <button onclick="app.switchAdminTab('metrics')" id="atab-metrics" class="admin-tab-btn px-4 py-2 rounded-lg text-xs font-bold text-blue-600 bg-blue-50">
+                        Dashboard Metrics
+                    </button>
+                    <button onclick="app.switchAdminTab('vouchers')" id="atab-vouchers" class="admin-tab-btn px-4 py-2 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-50">
+                        Voucher Review Queue
+                    </button>
+                    <button onclick="app.switchAdminTab('payouts')" id="atab-payouts" class="admin-tab-btn px-4 py-2 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-50">
+                        Payout Queue
+                    </button>
+                    <button onclick="app.switchAdminTab('users')" id="atab-users" class="admin-tab-btn px-4 py-2 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-50">
+                        User Management
+                    </button>
+                    <button onclick="app.switchAdminTab('settings')" id="atab-settings" class="admin-tab-btn px-4 py-2 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-50">
+                        Exchange Settings
+                    </button>
+                    <button onclick="app.switchAdminTab('networks')" id="atab-networks" class="admin-tab-btn px-4 py-2 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-50">
+                        Crypto Networks
+                    </button>
+                    <button onclick="app.switchAdminTab('support')" id="atab-support" class="admin-tab-btn px-4 py-2 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-50">
+                        Support & FAQs
+                    </button>
+                    <button onclick="app.switchAdminTab('firebase')" id="atab-firebase" class="admin-tab-btn px-4 py-2 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-50">
+                        Firebase Settings
+                    </button>
+                </div>
+            </div>
+
+            <!-- ADMIN TAB 1: METRICS -->
+            <div id="acontent-metrics" class="admin-tab-content space-y-6">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-1">
+                        <span class="text-xs font-semibold text-slate-500">Total Registered Users</span>
+                        <div class="text-2xl font-extrabold text-slate-900" id="admTotalUsers">0</div>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-1">
+                        <span class="text-xs font-semibold text-slate-500">Vouchers Awaiting Review</span>
+                        <div class="text-2xl font-extrabold text-amber-600" id="admPendingVouchers">0</div>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-1">
+                        <span class="text-xs font-semibold text-slate-500">Approved Awaiting Payout</span>
+                        <div class="text-2xl font-extrabold text-blue-600" id="admPendingPayouts">0</div>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-1">
+                        <span class="text-xs font-semibold text-slate-500">Total Completed Settlements</span>
+                        <div class="text-2xl font-extrabold text-emerald-600" id="admCompletedSettlements">₹0.00</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ADMIN TAB 2: VOUCHER REVIEW QUEUE -->
+            <div id="acontent-vouchers" class="admin-tab-content hidden space-y-4">
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
+                    <h3 class="font-extrabold text-slate-800 text-base">Voucher Verification Queue</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-slate-200 bg-slate-50 text-[11px] font-bold text-slate-500 uppercase">
+                                    <th class="p-3">Order ID</th>
+                                    <th class="p-3">User UID</th>
+                                    <th class="p-3">USDT</th>
+                                    <th class="p-3">Expected INR</th>
+                                    <th class="p-3">Proof</th>
+                                    <th class="p-3">TxHash</th>
+                                    <th class="p-3">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminVoucherQueueBody" class="divide-y divide-slate-100 text-xs font-medium text-slate-700">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ADMIN TAB 3: PAYOUT QUEUE -->
+            <div id="acontent-payouts" class="admin-tab-content hidden space-y-4">
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
+                    <h3 class="font-extrabold text-slate-800 text-base">INR Payout Release Queue</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-slate-200 bg-slate-50 text-[11px] font-bold text-slate-500 uppercase">
+                                    <th class="p-3">Order ID</th>
+                                    <th class="p-3">Method</th>
+                                    <th class="p-3">Payout Details</th>
+                                    <th class="p-3">Net INR Amount</th>
+                                    <th class="p-3">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminPayoutQueueBody" class="divide-y divide-slate-100 text-xs font-medium text-slate-700">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ADMIN TAB 4: USER MANAGEMENT -->
+            <div id="acontent-users" class="admin-tab-content hidden space-y-4">
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
+                    <h3 class="font-extrabold text-slate-800 text-base">Registered Users Directory</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-slate-200 bg-slate-50 text-[11px] font-bold text-slate-500 uppercase">
+                                    <th class="p-3">Username</th>
+                                    <th class="p-3">Email</th>
+                                    <th class="p-3">UID</th>
+                                    <th class="p-3">Status</th>
+                                    <th class="p-3">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminUsersTableBody" class="divide-y divide-slate-100 text-xs font-medium text-slate-700">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ADMIN TAB 5: EXCHANGE SETTINGS -->
+            <div id="acontent-settings" class="admin-tab-content hidden space-y-6 max-w-2xl">
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-5">
+                    <h3 class="font-extrabold text-slate-800 text-base">Global Exchange & Rate Configuration</h3>
+                    
+                    <form onsubmit="app.saveExchangeSettings(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Global USDT Rate (INR)</label>
+                            <input type="number" id="settingUsdtRate" step="0.01" value="99.00" class="w-full bg-slate-50 border border-slate-300 rounded-xl py-2 px-3 text-xs font-bold text-blue-600">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Service Fee (%)</label>
+                            <input type="number" id="settingServiceFee" step="0.01" value="0.00" class="w-full bg-slate-50 border border-slate-300 rounded-xl py-2 px-3 text-xs font-bold text-slate-800">
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Min Order Limit (USDT)</label>
+                                <input type="number" id="settingMinOrder" value="10" class="w-full bg-slate-50 border border-slate-300 rounded-xl py-2 px-3 text-xs">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Max Order Limit (USDT)</label>
+                                <input type="number" id="settingMaxOrder" value="10000" class="w-full bg-slate-50 border border-slate-300 rounded-xl py-2 px-3 text-xs">
+                            </div>
+                        </div>
+
+                        <div class="flex items-center space-x-2 pt-2">
+                            <input type="checkbox" id="settingMaintenanceMode" class="rounded text-blue-600 focus:ring-blue-500">
+                            <label for="settingMaintenanceMode" class="text-xs font-bold text-slate-800">Enable System Maintenance Mode (Pause Exchanges)</label>
+                        </div>
+
+                        <button type="submit" class="w-full py-3 bg-blue-600 text-white font-bold text-xs rounded-xl hover:bg-blue-700 shadow-md transition">
+                            Save Global Settings
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- ADMIN TAB 6: CRYPTO NETWORKS -->
+            <div id="acontent-networks" class="admin-tab-content hidden space-y-6">
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
+                    <div class="flex items-center justify-between">
+                        <h3 class="font-extrabold text-slate-800 text-base">Crypto Networks & Deposit Addresses</h3>
+                        <button onclick="app.openAddNetworkModal()" class="px-3 py-1.5 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700 transition">
+                            + Add Network
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="adminNetworksList">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- ADMIN TAB 7: SUPPORT & FAQS -->
+            <div id="acontent-support" class="admin-tab-content hidden space-y-6">
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-5 max-w-2xl">
+                    <h3 class="font-extrabold text-slate-800 text-base">Support Links & NEWS Channel Settings</h3>
+
+                    <form onsubmit="app.saveSupportSettings(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Telegram Assist Link</label>
+                            <input type="text" id="settingTgAssistUrl" value="https://t.me/ImNova18" class="w-full bg-slate-50 border border-slate-300 rounded-xl py-2 px-3 text-xs">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Telegram Bot Support Link</label>
+                            <input type="text" id="settingTgBotUrl" value="https://t.me/AssisByNova_Bot" class="w-full bg-slate-50 border border-slate-300 rounded-xl py-2 px-3 text-xs">
+                        </div>
+
+                        <hr class="border-slate-100">
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">NEWS Button Channel Link</label>
+                            <input type="text" id="settingNewsUrl" value="https://t.me/ImNova18" class="w-full bg-slate-50 border border-slate-300 rounded-xl py-2 px-3 text-xs font-bold text-blue-600">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">NEWS Title</label>
+                            <input type="text" id="settingNewsTitle" value="Official News Channel" class="w-full bg-slate-50 border border-slate-300 rounded-xl py-2 px-3 text-xs">
+                        </div>
+
+                        <button type="submit" class="w-full py-3 bg-blue-600 text-white font-bold text-xs rounded-xl hover:bg-blue-700 shadow-md transition">
+                            Save Support Channel Config
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- ADMIN TAB 8: FIREBASE CONFIGURATION -->
+            <div id="acontent-firebase" class="admin-tab-content hidden space-y-6">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    <div class="lg:col-span-6 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                            <h3 class="font-extrabold text-slate-800 text-base">Firebase Web SDK Configuration</h3>
+                            <span id="firebaseStatusBadge" class="text-xs px-2.5 py-1 rounded-full font-bold bg-amber-100 text-amber-700">
+                                Testing Mode
+                            </span>
+                        </div>
+
+                        <form onsubmit="app.saveFirebaseConfig(event)" class="space-y-3">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">API Key</label>
+                                <input type="text" id="fbApiKey" placeholder="AIzaSy..." class="w-full bg-slate-50 border border-slate-300 rounded-xl py-1.5 px-3 text-xs font-mono">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Auth Domain</label>
+                                <input type="text" id="fbAuthDomain" placeholder="forexflip.firebaseapp.com" class="w-full bg-slate-50 border border-slate-300 rounded-xl py-1.5 px-3 text-xs font-mono">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Project ID</label>
+                                <input type="text" id="fbProjectId" placeholder="forexflip-prod" class="w-full bg-slate-50 border border-slate-300 rounded-xl py-1.5 px-3 text-xs font-mono">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Storage Bucket</label>
+                                <input type="text" id="fbStorageBucket" placeholder="forexflip.appspot.com" class="w-full bg-slate-50 border border-slate-300 rounded-xl py-1.5 px-3 text-xs font-mono">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">App ID</label>
+                                <input type="text" id="fbAppId" placeholder="1:123456789:web:abcdef" class="w-full bg-slate-50 border border-slate-300 rounded-xl py-1.5 px-3 text-xs font-mono">
+                            </div>
+
+                            <div class="flex space-x-2 pt-2">
+                                <button type="button" onclick="app.testFirebaseConnection()" class="w-1/2 py-2.5 bg-slate-800 text-white font-bold text-xs rounded-xl hover:bg-slate-700 transition">
+                                    Test Connection
+                                </button>
+                                <button type="submit" class="w-1/2 py-2.5 bg-blue-600 text-white font-bold text-xs rounded-xl hover:bg-blue-700 transition">
+                                    Save SDK Config
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Code Exporters for Backend Firebase Security & Functions -->
+                    <div class="lg:col-span-6 bg-slate-900 text-slate-200 p-6 rounded-2xl space-y-4 font-mono text-xs overflow-hidden">
+                        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                            <span class="font-bold text-emerald-400">firestore.rules & Deployment Code</span>
+                            <button onclick="app.copySecurityRules()" class="px-2.5 py-1 bg-slate-800 text-slate-300 rounded text-[10px] hover:bg-slate-700">
+                                Copy Rules
+                            </button>
+                        </div>
+                        <pre id="securityRulesCode" class="bg-slate-950 p-3 rounded-lg overflow-x-auto text-[11px] text-slate-300 max-h-60 custom-scrollbar">
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // A signed-in user can access only their own profile document.
+    match /users/{userId} {
+      allow create: if request.auth != null && request.auth.uid == userId
+        && request.resource.data.keys().hasOnly(['uid','email','username','createdAt','emailVerified']);
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow update: if request.auth != null && request.auth.uid == userId
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['username']);
+      allow delete: if false;
+    }
+    // Orders, balances, payout decisions and exchange settings require a trusted backend/admin claim.
+    match /orders/{orderId} { allow read, write: if false; }
+    match /settings/{doc} { allow read: if true; allow write: if false; }
+    match /{document=**} { allow read, write: if false; }
+  }
+}</pre>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-[#102a43] text-gray-400 border-t border-slate-800 py-8 text-xs mt-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex items-center space-x-3">
+                <div class="w-6 h-6 rounded bg-blue-600 text-white flex items-center justify-center font-bold text-xs">F</div>
+                <span class="font-bold text-white text-sm">ForexFlip</span>
+                <span class="text-slate-500">| Premium USDT-to-INR Settlement Hub</span>
+            </div>
+            <div class="text-center md:text-right text-[11px] text-slate-500 space-y-1">
+                <p>&copy; 2026 ForexFlip. All rights reserved. Encrypted Financial Audit Ledger.</p>
+                <p>Disclaimer: Ensure compliance with local monetary transfer rules prior to initiating crypto conversions.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- MODALS SECTION -->
+    
+    <!-- 1. AUTH MODAL (LOGIN / REGISTER / OWNER) -->
+    <div id="authModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl border border-slate-200 overflow-hidden relative animate-pulse-subtle">
+            <button onclick="app.closeAuthModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 text-base">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <div class="p-6 space-y-5">
+                <div class="text-center space-y-1">
+                    <h3 class="text-xl font-extrabold text-slate-900" id="authModalTitle">Sign In to ForexFlip</h3>
+                    <p class="text-xs text-slate-500" id="authModalSubtitle">Enter your credentials to access your exchange portal</p>
+                </div>
+
+                <!-- Form -->
+                <form id="authForm" onsubmit="app.handleAuthSubmit(event)" class="space-y-4">
+                    <div id="authUsernameGroup" class="hidden">
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Username *</label>
+                        <input type="text" id="authUsername" placeholder="e.g. trader_pro" class="w-full bg-slate-50 border border-slate-300 rounded-xl py-2 px-3 text-xs font-semibold focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
+
+                    <div id="authEmailGroup">
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Email Address *</label>
+                        <input type="email" id="authEmail" required placeholder="user@domain.com" class="w-full bg-slate-50 border border-slate-300 rounded-xl py-2 px-3 text-xs font-semibold focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
+
+                    <div id="authPasswordGroup">
+                        <label class="block text-xs font-bold text-slate-700 mb-1" id="authPasswordLabel">Password *</label>
+                        <div class="relative">
+                            <input type="password" id="authPassword" required placeholder="••••••••" class="w-full bg-slate-50 border border-slate-300 rounded-xl py-2 px-3 text-xs font-semibold focus:ring-2 focus:ring-blue-500 focus:outline-none pr-10">
+                            <button type="button" onclick="app.togglePasswordVisibility('authPassword')" class="absolute right-3 top-2 text-slate-400 hover:text-slate-600 text-xs">
+                                <i class="fa-solid fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="ownerIdGroup" class="hidden">
+                        <label class="block text-xs font-bold text-amber-800 mb-1">Owner Identifier Code *</label>
+                        <input type="text" id="ownerIdInput" placeholder="Default: NOVA-EXCHANGES" class="w-full bg-amber-50/50 border border-amber-300 rounded-xl py-2 px-3 text-xs font-mono font-bold text-amber-900">
+                    </div>
+
+                    <button type="submit" id="authSubmitBtn" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-md transition">
+                        Authenticate
+                    </button>
+                </form>
+
+                <!-- Social & Owner Toggle -->
+                <div class="border-t border-slate-100 pt-4 space-y-3">
+                    <button onclick="app.handleGoogleSignIn()" class="w-full py-2.5 bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold text-xs rounded-xl border border-slate-200 transition flex items-center justify-center space-x-2">
+                        <i class="fa-brands fa-google text-red-500"></i>
+                        <span>Continue with Google</span>
+                    </button>
+
+                    <div class="text-center text-xs text-slate-500">
+                        <span id="authSwitchPrompt">Don't have an account?</span>
+                        <button onclick="app.toggleAuthMode()" id="authSwitchBtn" class="text-blue-600 font-bold ml-1 hover:underline">
+                            Register
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. EMAIL OTP VERIFICATION MODAL -->
+    <div id="otpModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-sm rounded-2xl shadow-2xl border border-slate-200 p-6 space-y-5 text-center">
+            <div class="w-12 h-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xl mx-auto">
+                <i class="fa-solid fa-envelope-circle-check"></i>
+            </div>
+            <div>
+                <h3 class="font-extrabold text-slate-900 text-base">Verify Email Address</h3>
+                <p class="text-xs text-slate-500 mt-1">Email verification is required for <strong id="otpTargetEmail" class="text-slate-800"></strong></p>
+                <div class="mt-2 bg-blue-50 text-blue-700 text-[11px] p-2 rounded-lg">A real verification link will be sent to your email. No demo OTP is used.</div>
+            </div>
+
+            <button onclick="app.closeOtpModal()" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-md transition">Close and check email</button>
+        </div>
+    </div>
+
+    <!-- 3. AI CHAT SUPPORT MODAL -->
+    <div id="aiChatModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col h-[520px]">
+            <!-- Header -->
+            <div class="bg-[#102a43] text-white p-4 flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-wand-magic-sparkles text-purple-400"></i>
+                    <h3 class="font-bold text-sm">ForexFlip AI Support Desk</h3>
+                </div>
+                <button onclick="app.closeAiChatModal()" class="text-slate-400 hover:text-white">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Messages Area -->
+            <div id="aiChatMessages" class="p-4 flex-grow overflow-y-auto custom-scrollbar space-y-3 bg-slate-50 text-xs">
+                <!-- Dynamic messages -->
+            </div>
+
+            <!-- FAQ Selectors -->
+            <div class="p-2 bg-slate-100 border-t border-slate-200 overflow-x-auto custom-scrollbar whitespace-nowrap flex space-x-2" id="aiFaqChips">
+                <!-- FAQ Chips inserted via JS -->
+            </div>
+
+            <!-- Input Form -->
+            <form onsubmit="app.sendAiChatMessage(event)" class="p-3 bg-white border-t border-slate-200 flex space-x-2">
+                <input type="text" id="aiChatInput" placeholder="Type your conversion query..." class="flex-grow bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-purple-500 focus:outline-none">
+                <button type="submit" class="px-4 py-2 bg-purple-600 text-white font-bold text-xs rounded-xl hover:bg-purple-700 transition">
+                    Send
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 4. ORDER DETAIL / RECEIPT MODAL -->
+    <div id="orderDetailModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl border border-slate-200 overflow-hidden relative">
+            <div class="bg-slate-900 text-white p-4 flex items-center justify-between">
+                <h3 class="font-bold text-sm">Voucher Order Audit Receipt</h3>
+                <button onclick="app.closeOrderDetailModal()" class="text-slate-400 hover:text-white">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div id="receiptPrintableArea" class="p-6 space-y-4 text-xs">
+                <!-- Dynamic order receipt content -->
+            </div>
+
+            <div class="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
+                <button onclick="app.downloadPdfReceipt()" class="px-4 py-2 bg-slate-800 text-white font-bold text-xs rounded-xl hover:bg-slate-900 transition flex items-center space-x-1.5">
+                    <i class="fa-solid fa-download"></i>
+                    <span>Download PDF Receipt</span>
+                </button>
+                <button onclick="app.closeOrderDetailModal()" class="px-4 py-2 bg-slate-200 text-slate-700 font-bold text-xs rounded-xl hover:bg-slate-300 transition">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATIONS CONTAINER -->
+    <div id="toastContainer" class="fixed bottom-5 right-5 z-50 space-y-2 pointer-events-none"></div>
+
+    <script>
+        /**
+         * ForexFlip Full-Stack Core Client Application Engine
+         */
+        class ForexFlipApp {
+            constructor() {
+                // Application State
+                this.state = {
+                    currentUser: null, // { uid, username, email, isAdmin }
+                    authMode: 'login', // 'login', 'register', 'owner'
+                    activeTab: 'exchange',
+                    activeAdminTab: 'metrics',
+                    
+                    // Configurable Exchange Settings
+                    exchangeSettings: {
+                        usdtRate: 99.00,
+                        serviceFeePercent: 0.00,
+                        minOrderUsdt: 10,
+                        maxOrderUsdt: 10000,
+                        quoteExpiryMinutes: 15,
+                        maintenanceMode: false,
+                        rateLastUpdated: new Date().toISOString()
+                    },
+
+                    // Support Channels Config
+                    supportConfig: {
+                        tgAssistUrl: 'https://t.me/ImNova18',
+                        tgAssistTitle: 'Telegram Assist',
+                        tgAssistDesc: 'Very fast support desk for live transaction queries.',
+                        tgBotUrl: 'https://t.me/AssisByNova_Bot',
+                        tgBotTitle: 'Telegram Bot Support',
+                        tgBotDesc: 'Automated status checker bot for real-time order updates.',
+                        newsUrl: 'https://t.me/ImNova18',
+                        newsTitle: 'Official News Channel',
+                        newsDesc: 'Join our official channel for rate updates and announcements.',
+                        newsVisible: true
+                    },
+
+                    // Crypto Networks Config
+                    networks: [
+                        { id: 'binance', name: 'Binance Pay ID', asset: 'USDT', address: '284910384', enabled: true, icon: 'fa-solid fa-bolt' },
+                        { id: 'trc20', name: 'TRC20 Network', asset: 'USDT', address: 'TY3x9mK2LpQ8vW1zA7nF4R6sE5dC8bM9', enabled: true, icon: 'fa-solid fa-link' },
+                        { id: 'bep20', name: 'BEP20 (BSC)', asset: 'USDT', address: '0x71C7656EC7ab88b098defB751B7401B5f6d8976F', enabled: true, icon: 'fa-solid fa-cubes' },
+                        { id: 'polygon', name: 'Polygon Network', asset: 'USDT', address: '0x71C7656EC7ab88b098defB751B7401B5f6d8976F', enabled: true, icon: 'fa-solid fa-draw-polygon' },
+                        { id: 'ltc', name: 'LTC Network', asset: 'LTC', address: 'LTC1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh', enabled: true, icon: 'fa-solid fa-coins' }
+                    ],
+
+                    // AI FAQs
+                    aiFaqs: [
+                        { q: "How long does payout release take?", a: "Once voucher is verified, INR payouts are released via IMPS/UPI within 5-15 minutes." },
+                        { q: "What is the minimum exchange amount?", a: "The minimum amount is 10 USDT per transaction." },
+                        { q: "What happens if I send Flash USDT?", a: "Flash USDT or unconfirmed chain assets will be rejected permanently." },
+                        { q: "How are exchange rates locked?", a: "When you click 'Lock Quote', your rate is frozen for 15 minutes." }
+                    ],
+
+                    // System Database
+                    users: [],
+                    orders: [],
+                    
+                    // Active Quote Session
+                    activeQuote: null, // { usdtAmount, rate, netInr, networkId, expiresAt }
+                    quoteTimerInterval: null,
+                    uploadedProofBase64: null,
+                    pendingRegData: null,
+                    activeDetailOrder: null
+                };
+
+                this.init();
+            }
+
+            init() {
+                this.loadLocalStorage();
+                this.calculateUserExchange();
+                this.renderNetworks();
+                this.updateUiForAuthState();
+                this.setupOtpInputAutoTab();
+                
+                // Set default rates in UI
+                this.updateRateDisplays();
+            }
+
+            // LocalStorage Data Persistence for Live Testing
+            loadLocalStorage() {
+                const savedUsers = localStorage.getItem('forexflip_users');
+                if (savedUsers) this.state.users = JSON.parse(savedUsers);
+                
+                const savedOrders = localStorage.getItem('forexflip_orders');
+                if (savedOrders) this.state.orders = JSON.parse(savedOrders);
+
+                const savedSettings = localStorage.getItem('forexflip_settings');
+                if (savedSettings) this.state.exchangeSettings = JSON.parse(savedSettings);
+
+                const savedSupport = localStorage.getItem('forexflip_support');
+                if (savedSupport) this.state.supportConfig = JSON.parse(savedSupport);
+            }
+
+            saveLocalStorage() {
+                localStorage.setItem('forexflip_users', JSON.stringify(this.state.users));
+                localStorage.setItem('forexflip_orders', JSON.stringify(this.state.orders));
+                localStorage.setItem('forexflip_settings', JSON.stringify(this.state.exchangeSettings));
+                localStorage.setItem('forexflip_support', JSON.stringify(this.state.supportConfig));
+            }
+
+            // Navigation Controller
+            navigateTo(tabId) {
+                if (!this.state.currentUser) {
+                    this.openAuthModal('login');
+                    this.showToast('Please sign in to access dashboard features', 'warning');
+                    return;
+                }
+
+                this.state.activeTab = tabId;
+                
+                // Hide guest view, show user view
+                document.getElementById('guestLandingView').classList.add('hidden');
+                document.getElementById('userDashboardView').classList.remove('hidden');
+                document.getElementById('adminPanelView').classList.add('hidden');
+
+                // Update Tab Button Styles
+                document.querySelectorAll('.tab-btn').forEach(btn => {
+                    btn.classList.remove('text-blue-600', 'bg-blue-50', 'border', 'border-blue-200');
+                    btn.classList.add('text-slate-600');
+                });
+                const activeBtn = document.getElementById(`tab-${tabId}`);
+                if (activeBtn) {
+                    activeBtn.classList.add('text-blue-600', 'bg-blue-50', 'border', 'border-blue-200');
+                    activeBtn.classList.remove('text-slate-600');
+                }
+
+                // Hide all contents
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+                
+                // Show selected content
+                const activeContent = document.getElementById(`content-${tabId}`);
+                if (activeContent) activeContent.classList.remove('hidden');
+
+                // Refresh Tab Data
+                if (tabId === 'vouchers') this.renderVouchersTable();
+                if (tabId === 'wallet') this.renderWalletSummary();
+                if (tabId === 'profile') this.renderProfileView();
+            }
+
+            switchAdminTab(adminTabId) {
+                this.state.activeAdminTab = adminTabId;
+                
+                document.querySelectorAll('.admin-tab-btn').forEach(btn => {
+                    btn.classList.remove('text-blue-600', 'bg-blue-50');
+                    btn.classList.add('text-slate-600');
+                });
+                const activeBtn = document.getElementById(`atab-${adminTabId}`);
+                if (activeBtn) activeBtn.classList.add('text-blue-600', 'bg-blue-50');
+
+                document.querySelectorAll('.admin-tab-content').forEach(c => c.classList.add('hidden'));
+                const activeContent = document.getElementById(`acontent-${adminTabId}`);
+                if (activeContent) activeContent.classList.remove('hidden');
+
+                if (adminTabId === 'metrics') this.renderAdminMetrics();
+                if (adminTabId === 'vouchers') this.renderAdminVoucherQueue();
+                if (adminTabId === 'payouts') this.renderAdminPayoutQueue();
+                if (adminTabId === 'users') this.renderAdminUsers();
+                if (adminTabId === 'networks') this.renderAdminNetworks();
+            }
+
+            openAdminPanel() {
+                if (!this.state.currentUser || !this.state.currentUser.isAdmin) {
+                    this.showToast('Unauthorized access. Owner permissions required.', 'error');
+                    return;
+                }
+
+                document.getElementById('guestLandingView').classList.add('hidden');
+                document.getElementById('userDashboardView').classList.add('hidden');
+                document.getElementById('adminPanelView').classList.remove('hidden');
+                
+                this.switchAdminTab('metrics');
+            }
+
+            // Auth Modal & Handlers
+            openAuthModal(mode = 'login') {
+                this.state.authMode = mode;
+                document.getElementById('authModal').classList.remove('hidden');
+                
+                const title = document.getElementById('authModalTitle');
+                const sub = document.getElementById('authModalSubtitle');
+                const usernameGrp = document.getElementById('authUsernameGroup');
+                const ownerGrp = document.getElementById('ownerIdGroup');
+                const submitBtn = document.getElementById('authSubmitBtn');
+                const prompt = document.getElementById('authSwitchPrompt');
+                const switchBtn = document.getElementById('authSwitchBtn');
+
+                if (mode === 'login') {
+                    title.innerText = "Sign In to ForexFlip";
+                    sub.innerText = "Enter registered email and password";
+                    usernameGrp.classList.add('hidden');
+                    ownerGrp.classList.add('hidden');
+                    submitBtn.innerText = "Login to Portal";
+                    prompt.innerText = "Don't have an account?";
+                    switchBtn.innerText = "Register";
+                } else if (mode === 'register') {
+                    title.innerText = "Create New Account";
+                    sub.innerText = "Fill in your email and username to begin";
+                    usernameGrp.classList.remove('hidden');
+                    ownerGrp.classList.add('hidden');
+                    submitBtn.innerText = "Send Email Verification OTP";
+                    prompt.innerText = "Already registered?";
+                    switchBtn.innerText = "Login";
+                } else if (mode === 'owner') {
+                    title.innerText = "Owner Portal Access";
+                    sub.innerText = "Authorized executive access point";
+                    usernameGrp.classList.add('hidden');
+                    ownerGrp.classList.remove('hidden');
+                    submitBtn.innerText = "Authenticate Admin Session";
+                    prompt.innerText = "Normal customer?";
+                    switchBtn.innerText = "Login";
+                }
+            }
+
+            closeAuthModal() {
+                document.getElementById('authModal').classList.add('hidden');
+            }
+
+            toggleAuthMode() {
+                const nextMode = this.state.authMode === 'login' ? 'register' : 'login';
+                this.openAuthModal(nextMode);
+            }
+
+            togglePasswordVisibility(inputId) {
+                const input = document.getElementById(inputId);
+                input.type = input.type === 'password' ? 'text' : 'password';
+            }
+
+            async handleAuthSubmit(e) {
+                e.preventDefault();
+                if (window.firebaseBridge?.ready) {
+                    try {
+                        const email = document.getElementById('authEmail').value.trim();
+                        const password = document.getElementById('authPassword').value;
+                        if (this.state.authMode === 'owner') {
+                            this.showToast('Admin login is disabled until a secure Firebase admin role is configured.', 'warning');
+                            return;
+                        }
+                        if (this.state.authMode === 'register') {
+                            const username = document.getElementById('authUsername').value.trim();
+                            if (!username) { this.showToast('Please specify a username', 'warning'); return; }
+                            await window.firebaseBridge.register(email, password, username);
+                            this.state.pendingRegData = { email, username };
+                            document.getElementById('otpTargetEmail').innerText = email;
+                            document.getElementById('otpModal').classList.remove('hidden');
+                            this.closeAuthModal();
+                            this.showToast('Verification email sent. Open the link in your email, then sign in.', 'success');
+                            return;
+                        }
+                        if (this.state.authMode === 'login') {
+                            const result = await window.firebaseBridge.login(email, password);
+                            if (!result.user.emailVerified) {
+                                await window.firebaseBridge.logout();
+                                this.showToast('Please verify your email using the link we sent you.', 'warning');
+                                return;
+                            }
+                            this.state.currentUser = result.profile;
+                            this.closeAuthModal();
+                            this.updateUiForAuthState();
+                            this.navigateTo('exchange');
+                            this.showToast(`Welcome back, ${result.profile.username}!`, 'success');
+                            return;
+                        }
+                    } catch (err) {
+                        this.showToast(window.firebaseBridge.friendlyError(err), 'error');
+                        return;
+                    }
+                }
+                this.showToast('Firebase is not configured yet. Please configure the Firebase web app settings in this file.', 'error');
+                return;
+                const email = document.getElementById('authEmail').value.trim();
+                const password = document.getElementById('authPassword').value;
+
+                if (this.state.authMode === 'register') {
+                    const username = document.getElementById('authUsername').value.trim();
+                    if (!username) {
+                        this.showToast('Please specify a username', 'warning');
+                        return;
+                    }
+                    if (this.state.users.some(u => u.email === email)) {
+                        this.showToast('Email address already registered', 'error');
+                        return;
+                    }
+
+                    // Initiate OTP Simulation
+                    this.state.pendingRegData = { email, username, password };
+                    this.closeAuthModal();
+                    
+                    document.getElementById('otpTargetEmail').innerText = email;
+                    document.getElementById('otpModal').classList.remove('hidden');
+                    this.showToast('4-digit OTP code generated', 'info');
+
+                } else if (this.state.authMode === 'login') {
+                    const user = this.state.users.find(u => u.email === email && u.password === password);
+                    if (!user) {
+                        this.showToast('Invalid email or password credentials', 'error');
+                        return;
+                    }
+                    if (user.isSuspended) {
+                        this.showToast(`Account suspended. Reason: ${user.suspendReason || 'Contact support'}`, 'error');
+                        return;
+                    }
+
+                    this.state.currentUser = user;
+                    this.closeAuthModal();
+                    this.updateUiForAuthState();
+                    this.navigateTo('exchange');
+                    this.showToast(`Welcome back, ${user.username}!`, 'success');
+
+                } else if (this.state.authMode === 'owner') {
+                    const ownerId = document.getElementById('ownerIdInput').value.trim();
+                    if (ownerId === 'NOVA-EXCHANGES') {
+                        this.state.currentUser = {
+                            uid: 'ADMIN-NOVA-EXCHANGES',
+                            username: 'Owner (NOVA)',
+                            email: email || 'owner@forexflip.io',
+                            isAdmin: true,
+                            createdAt: new Date().toISOString()
+                        };
+                        this.closeAuthModal();
+                        this.updateUiForAuthState();
+                        this.openAdminPanel();
+                        this.showToast('Owner Portal Authenticated', 'success');
+                    } else {
+                        this.showToast('Invalid Owner Identifier Code', 'error');
+                    }
+                }
+            }
+
+            setupOtpInputAutoTab() {
+                const digits = document.querySelectorAll('.otp-digit');
+                digits.forEach((input, index) => {
+                    input.addEventListener('input', () => {
+                        if (input.value.length === 1 && index < digits.length - 1) {
+                            digits[index + 1].focus();
+                        }
+                    });
+                });
+            }
+
+            verifyRegistrationOtp() {
+                // Firebase Auth in this build sends a verification link, not a custom 4-digit OTP.
+                // Never accept a fixed/demo OTP or create a local-only account for a money-related app.
+                document.getElementById('otpModal').classList.add('hidden');
+                this.pendingRegData = null;
+                this.showToast('Demo OTP is disabled. Open the verification link sent by Firebase, then log in.', 'warning');
+                this.openAuthModal('login');
+            }
+
+            async handleGoogleSignIn() {
+                if (!window.firebaseBridge?.ready) { this.showToast('Firebase is not configured yet.', 'error'); return; }
+                try {
+                    const result = await window.firebaseBridge.googleSignIn();
+                    this.state.currentUser = result.profile;
+                    this.closeAuthModal();
+                    this.updateUiForAuthState();
+                    this.navigateTo('exchange');
+                    this.showToast(`Welcome, ${result.profile.username}!`, 'success');
+                } catch (err) { this.showToast(window.firebaseBridge.friendlyError(err), 'error'); }
+                return;
+                const googleUser = {
+                    uid: 'GUSER-' + Math.random().toString(36).substr(2, 9).toUpperCase(),
+                    username: 'GoogleTrader',
+                    email: 'google.user@gmail.com',
+                    isAdmin: false,
+                    isSuspended: false,
+                    createdAt: new Date().toISOString()
+                };
+
+                this.state.currentUser = googleUser;
+                this.closeAuthModal();
+                this.updateUiForAuthState();
+                this.navigateTo('exchange');
+                this.showToast('Signed in via Google Account', 'success');
+            }
+
+            async logout() {
+                if (window.firebaseBridge?.ready) { try { await window.firebaseBridge.logout(); } catch (e) { console.error(e); } }
+                this.state.currentUser = null;
+                this.updateUiForAuthState();
+                document.getElementById('userDashboardView').classList.add('hidden');
+                document.getElementById('adminPanelView').classList.add('hidden');
+                document.getElementById('guestLandingView').classList.remove('hidden');
+                this.showToast('Logged out successfully', 'info');
+            }
+
+            updateUiForAuthState() {
+                const authNav = document.getElementById('authNavButtons');
+                const userNav = document.getElementById('userNavMenu');
+                const adminBadge = document.getElementById('adminBadge');
+
+                if (this.state.currentUser) {
+                    authNav.classList.add('hidden');
+                    userNav.classList.remove('hidden');
+                    userNav.classList.add('flex');
+
+                    document.getElementById('navUsername').innerText = this.state.currentUser.username;
+                    document.getElementById('navUserEmail').innerText = this.state.currentUser.email;
+
+                    if (this.state.currentUser.isAdmin) {
+                        adminBadge.classList.remove('hidden');
+                    } else {
+                        adminBadge.classList.add('hidden');
+                    }
+                } else {
+                    authNav.classList.remove('hidden');
+                    userNav.classList.add('hidden');
+                }
+            }
+
+            // Exchange Calculator Logic
+            calculateUserExchange() {
+                const usdtInput = parseFloat(document.getElementById('calcUsdtAmount').value) || 0;
+                const rate = this.state.exchangeSettings.usdtRate;
+                const feePct = this.state.exchangeSettings.serviceFeePercent;
+
+                const grossInr = usdtInput * rate;
+                const netInr = grossInr * (1 - feePct / 100);
+
+                document.getElementById('calcInrOutput').value = `₹ ${netInr.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                document.getElementById('calcFeeNotice').innerText = `Fee: ${feePct.toFixed(2)}% included`;
+
+                document.getElementById('summaryUsdt').innerText = `${usdtInput.toFixed(2)} USDT`;
+                document.getElementById('summaryInr').innerText = `₹ ${netInr.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            }
+
+            updateLandingCalc() {
+                const usdt = parseFloat(document.getElementById('landingUsdtInput').value) || 0;
+                const rate = this.state.exchangeSettings.usdtRate;
+                const net = usdt * rate;
+
+                document.getElementById('landingInrOutput').value = `₹ ${net.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                document.getElementById('landingNetPayout').innerText = `₹ ${net.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            }
+
+            renderNetworks() {
+                const grid = document.getElementById('networkSelectionGrid');
+                grid.innerHTML = '';
+
+                this.state.networks.filter(n => n.enabled).forEach((net, idx) => {
+                    const activeClass = idx === 0 ? 'border-blue-600 bg-blue-50/80 text-blue-900' : 'border-slate-200 bg-slate-50 text-slate-700';
+                    const card = document.createElement('div');
+                    card.className = `p-3 rounded-xl border-2 cursor-pointer transition flex items-center space-x-2 text-xs font-bold network-card ${activeClass}`;
+                    card.setAttribute('data-id', net.id);
+                    card.onclick = () => this.selectNetwork(net.id);
+
+                    card.innerHTML = `
+                        <i class="${net.icon} text-blue-600 text-sm shrink-0"></i>
+                        <div class="truncate">
+                            <span class="block text-xs truncate">${net.name}</span>
+                            <span class="block text-[10px] text-slate-400 font-mono">${net.asset}</span>
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                });
+            }
+
+            selectNetwork(networkId) {
+                document.querySelectorAll('.network-card').forEach(c => {
+                    c.classList.remove('border-blue-600', 'bg-blue-50/80', 'text-blue-900');
+                    c.classList.add('border-slate-200', 'bg-slate-50', 'text-slate-700');
+                });
+
+                const selected = document.querySelector(`.network-card[data-id="${networkId}"]`);
+                if (selected) {
+                    selected.classList.add('border-blue-600', 'bg-blue-50/80', 'text-blue-900');
+                }
+            }
+
+            lockExchangeQuote() {
+                if (this.state.exchangeSettings.maintenanceMode) {
+                    this.showToast('Exchanges paused for maintenance', 'error');
+                    return;
+                }
+
+                const usdt = parseFloat(document.getElementById('calcUsdtAmount').value) || 0;
+                if (usdt < this.state.exchangeSettings.minOrderUsdt || usdt > this.state.exchangeSettings.maxOrderUsdt) {
+                    this.showToast(`Amount must be between ${this.state.exchangeSettings.minOrderUsdt} and ${this.state.exchangeSettings.maxOrderUsdt} USDT`, 'warning');
+                    return;
+                }
+
+                const selectedCard = document.querySelector('.network-card.border-blue-600');
+                const netId = selectedCard ? selectedCard.getAttribute('data-id') : 'trc20';
+                const netObj = this.state.networks.find(n => n.id === netId);
+
+                const rate = this.state.exchangeSettings.usdtRate;
+                const netInr = usdt * rate;
+
+                this.state.activeQuote = {
+                    usdt,
+                    rate,
+                    netInr,
+                    network: netObj,
+                    expiresAt: Date.now() + 15 * 60 * 1000
+                };
+
+                // Show Deposit Card
+                const depositStep = document.getElementById('depositStepCard');
+                depositStep.classList.remove('hidden');
+
+                document.getElementById('depositMethodTitle').innerText = netObj.name;
+                document.getElementById('depositAddressInput').value = netObj.address;
+                document.getElementById('qrNetworkLabel').innerText = netObj.name;
+                document.getElementById('depositQrImage').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(netObj.address)}`;
+
+                // Enable Voucher Form Submit
+                document.getElementById('submitOrderBtn').disabled = false;
+
+                // Start Timer
+                this.startQuoteTimer();
+                this.showToast('Quote locked for 15 minutes!', 'info');
+            }
+
+            startQuoteTimer() {
+                if (this.state.quoteTimerInterval) clearInterval(this.state.quoteTimerInterval);
+
+                const timerElem = document.getElementById('sessionTimer');
+                this.state.quoteTimerInterval = setInterval(() => {
+                    const remaining = Math.max(0, Math.floor((this.state.activeQuote.expiresAt - Date.now()) / 1000));
+                    const mins = Math.floor(remaining / 60).toString().padStart(2, '0');
+                    const secs = (remaining % 60).toString().padStart(2, '0');
+                    timerElem.innerText = `${mins}:${secs}`;
+
+                    if (remaining <= 0) {
+                        clearInterval(this.state.quoteTimerInterval);
+                        timerElem.innerText = "EXPIRED";
+                        document.getElementById('submitOrderBtn').disabled = true;
+                        this.showToast('Quote expired. Please calculate a new quote', 'warning');
+                    }
+                }, 1000);
+            }
+
+            copyDepositAddress() {
+                const addr = document.getElementById('depositAddressInput').value;
+                navigator.clipboard.writeText(addr);
+                this.showToast('Deposit Address copied to clipboard!', 'success');
+            }
+
+            handleProofUpload(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (evt) => {
+                    this.state.uploadedProofBase64 = evt.target.result;
+                    document.getElementById('proofPreviewImg').src = evt.target.result;
+                    document.getElementById('proofPreviewContainer').classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            }
+
+            togglePayoutFields() {
+                const method = document.getElementById('payoutMethodSelect').value;
+                document.getElementById('payoutFieldsUPI').classList.add('hidden');
+                document.getElementById('payoutFieldsFamPay').classList.add('hidden');
+                document.getElementById('payoutFieldsBank').classList.add('hidden');
+
+                if (method === 'upi') document.getElementById('payoutFieldsUPI').classList.remove('hidden');
+                if (method === 'fampay') document.getElementById('payoutFieldsFamPay').classList.remove('hidden');
+                if (method === 'bank') document.getElementById('payoutFieldsBank').classList.remove('hidden');
+            }
+
+            submitVoucherOrder(e) {
+                e.preventDefault();
+                if (!this.state.activeQuote) {
+                    this.showToast('No active locked quote found', 'error');
+                    return;
+                }
+
+                const txHash = document.getElementById('formTxHash').value.trim();
+                const sender = document.getElementById('formSenderAddress').value.trim();
+                const payoutMethod = document.getElementById('payoutMethodSelect').value;
+
+                let payoutDetails = {};
+                if (payoutMethod === 'upi') {
+                    const name = document.getElementById('upiHolderName').value.trim();
+                    const upi = document.getElementById('upiId').value.trim();
+                    const upiConf = document.getElementById('upiIdConfirm').value.trim();
+                    if (upi !== upiConf) {
+                        this.showToast('UPI IDs do not match', 'error');
+                        return;
+                    }
+                    payoutDetails = { holder: name, upiId: upi };
+                } else if (payoutMethod === 'fampay') {
+                    payoutDetails = { holder: document.getElementById('famHolderName').value.trim(), famId: document.getElementById('famId').value.trim() };
+                } else if (payoutMethod === 'bank') {
+                    payoutDetails = { 
+                        holder: document.getElementById('bankHolderName').value.trim(), 
+                        accountNumber: document.getElementById('bankAccountNumber').value.trim(),
+                        ifsc: document.getElementById('bankIfsc').value.trim() 
+                    };
+                }
+
+                const newOrder = {
+                    orderId: 'FF-' + Math.floor(100000 + Math.random() * 900000),
+                    userId: this.state.currentUser.uid,
+                    username: this.state.currentUser.username,
+                    usdtAmount: this.state.activeQuote.usdt,
+                    lockedRate: this.state.activeQuote.rate,
+                    expectedInr: this.state.activeQuote.netInr,
+                    networkName: this.state.activeQuote.network.name,
+                    txHash,
+                    senderAddress: sender,
+                    proofImage: this.state.uploadedProofBase64 || 'placeholder',
+                    payoutMethod,
+                    payoutDetails,
+                    status: 'UNDER_REVIEW', // UNDER_REVIEW, APPROVED, REJECTED, COMPLETED
+                    createdAt: new Date().toISOString()
+                };
+
+                this.state.orders.unshift(newOrder);
+                this.saveLocalStorage();
+
+                // Reset
+                this.state.activeQuote = null;
+                document.getElementById('depositStepCard').classList.add('hidden');
+                document.getElementById('voucherSubmitForm').reset();
+                document.getElementById('proofPreviewContainer').classList.add('hidden');
+                document.getElementById('submitOrderBtn').disabled = true;
+
+                this.showToast(`Order #${newOrder.orderId} submitted for review!`, 'success');
+                this.navigateTo('vouchers');
+            }
+
+            // Vouchers View Renderer
+            renderVouchersTable(filteredList = null) {
+                const tbody = document.getElementById('vouchersTableBody');
+                const empty = document.getElementById('vouchersEmptyState');
+                tbody.innerHTML = '';
+
+                const userOrders = (filteredList || this.state.orders).filter(o => o.userId === this.state.currentUser.uid);
+
+                if (userOrders.length === 0) {
+                    empty.classList.remove('hidden');
+                    return;
+                }
+                empty.classList.add('hidden');
+
+                userOrders.forEach(o => {
+                    const tr = document.createElement('tr');
+                    tr.className = 'hover:bg-slate-50/80 transition';
+
+                    let statusBadge = '';
+                    if (o.status === 'UNDER_REVIEW') statusBadge = '<span class="px-2 py-0.5 rounded-full text-[10px] bg-amber-100 text-amber-800 font-bold">Pending Review</span>';
+                    else if (o.status === 'APPROVED') statusBadge = '<span class="px-2 py-0.5 rounded-full text-[10px] bg-blue-100 text-blue-800 font-bold">Approved (Processing Payout)</span>';
+                    else if (o.status === 'COMPLETED') statusBadge = '<span class="px-2 py-0.5 rounded-full text-[10px] bg-emerald-100 text-emerald-800 font-bold">Settled & Completed</span>';
+                    else if (o.status === 'REJECTED') statusBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] bg-red-100 text-red-800 font-bold">Rejected</span>`;
+
+                    tr.innerHTML = `
+                        <td class="p-3 font-mono font-bold text-slate-900">${o.orderId}</td>
+                        <td class="p-3 text-slate-500">${new Date(o.createdAt).toLocaleDateString()} ${new Date(o.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</td>
+                        <td class="p-3 font-bold text-slate-800">${o.usdtAmount.toFixed(2)} USDT</td>
+                        <td class="p-3 font-semibold text-blue-600">₹${o.lockedRate.toFixed(2)}</td>
+                        <td class="p-3 font-extrabold text-emerald-600">₹${o.expectedInr.toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
+                        <td class="p-3 text-slate-600">${o.networkName}</td>
+                        <td class="p-3">${statusBadge}</td>
+                        <td class="p-3 text-right">
+                            <button onclick="app.viewOrderDetail('${o.orderId}')" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg text-[11px] transition">
+                                Details
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+
+            filterVouchers(filterType) {
+                document.querySelectorAll('.v-filter-btn').forEach(btn => {
+                    btn.classList.remove('bg-blue-600', 'text-white', 'border-blue-600');
+                    btn.classList.add('bg-slate-100', 'text-slate-700', 'border-slate-200');
+                });
+
+                if (filterType === 'all') {
+                    this.renderVouchersTable();
+                } else if (filterType === 'last5') {
+                    const fiveDaysAgo = Date.now() - 5 * 24 * 60 * 60 * 1000;
+                    const filtered = this.state.orders.filter(o => new Date(o.createdAt).getTime() >= fiveDaysAgo);
+                    this.renderVouchersTable(filtered);
+                } else {
+                    const filtered = this.state.orders.filter(o => o.status === filterType);
+                    this.renderVouchersTable(filtered);
+                }
+            }
+
+            searchVouchers() {
+                const query = document.getElementById('voucherSearchInput').value.toLowerCase().trim();
+                const filtered = this.state.orders.filter(o => o.orderId.toLowerCase().includes(query) || o.txHash.toLowerCase().includes(query));
+                this.renderVouchersTable(filtered);
+            }
+
+            viewOrderDetail(orderId) {
+                const o = this.state.orders.find(item => item.orderId === orderId);
+                if (!o) return;
+
+                this.state.activeDetailOrder = o;
+                const modal = document.getElementById('orderDetailModal');
+                const area = document.getElementById('receiptPrintableArea');
+
+                area.innerHTML = `
+                    <div class="border-b border-slate-200 pb-3 flex justify-between items-center">
+                        <div>
+                            <h4 class="font-bold text-slate-800 text-sm">Order ID: #${o.orderId}</h4>
+                            <span class="text-[10px] text-slate-400 block">${new Date(o.createdAt).toLocaleString()}</span>
+                        </div>
+                        <span class="font-extrabold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-lg text-xs">ForexFlip Receipt</span>
+                    </div>
+
+                    <div class="space-y-2 py-2">
+                        <div class="flex justify-between"><span>Converted USDT:</span><strong class="text-slate-800">${o.usdtAmount.toFixed(2)} USDT</strong></div>
+                        <div class="flex justify-between"><span>Locked Rate:</span><strong class="text-blue-600">₹${o.lockedRate.toFixed(2)} / USDT</strong></div>
+                        <div class="flex justify-between border-t border-slate-100 pt-1"><span>Net INR Settlement:</span><strong class="text-emerald-600 text-sm">₹${o.expectedInr.toLocaleString('en-IN', {minimumFractionDigits: 2})}</strong></div>
+                        <div class="flex justify-between"><span>Network Chain:</span><span class="font-semibold text-slate-700">${o.networkName}</span></div>
+                        <div class="flex justify-between"><span>Transaction TxHash:</span><span class="font-mono text-[10px] text-slate-600 break-all">${o.txHash}</span></div>
+                    </div>
+
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1">
+                        <span class="font-bold text-slate-700 text-[11px] block">Payout Details (${o.payoutMethod.toUpperCase()}):</span>
+                        <pre class="text-[10px] font-mono text-slate-600 leading-snug">${JSON.stringify(o.payoutDetails, null, 2)}</pre>
+                    </div>
+
+                    ${o.rejectionReason ? `<div class="bg-red-50 border border-red-200 p-2.5 rounded-xl text-red-800 text-[11px]"><strong>Rejection Reason:</strong> ${o.rejectionReason}</div>` : ''}
+                `;
+
+                modal.classList.remove('hidden');
+            }
+
+            closeOrderDetailModal() {
+                document.getElementById('orderDetailModal').classList.add('hidden');
+            }
+
+            downloadPdfReceipt() {
+                const element = document.getElementById('receiptPrintableArea');
+                const opt = {
+                    margin:       0.5,
+                    filename:     `ForexFlip_Receipt_${this.state.activeDetailOrder.orderId}.pdf`,
+                    image:        { type: 'jpeg', quality: 0.98 },
+                    html2canvas:  { scale: 2 },
+                    jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+                };
+                html2pdf().set(opt).from(element).save();
+            }
+
+            // Wallet Renderer (Read-Only)
+            renderWalletSummary() {
+                const completedOrders = this.state.orders.filter(o => o.userId === this.state.currentUser.uid && o.status === 'COMPLETED');
+                const pendingOrders = this.state.orders.filter(o => o.userId === this.state.currentUser.uid && (o.status === 'UNDER_REVIEW' || o.status === 'APPROVED'));
+
+                const totalInr = completedOrders.reduce((sum, o) => sum + o.expectedInr, 0);
+                const totalUsdt = completedOrders.reduce((sum, o) => sum + o.usdtAmount, 0);
+                const pendingInr = pendingOrders.reduce((sum, o) => sum + o.expectedInr, 0);
+
+                document.getElementById('walletTotalInr').innerText = `₹ ${totalInr.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+                document.getElementById('walletTotalUsdt').innerText = `${totalUsdt.toFixed(2)} USDT`;
+                document.getElementById('walletPendingInr').innerText = `₹ ${pendingInr.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+                document.getElementById('walletTotalCount').innerText = this.state.orders.filter(o => o.userId === this.state.currentUser.uid).length;
+
+                const tbody = document.getElementById('walletActivityBody');
+                tbody.innerHTML = '';
+
+                completedOrders.forEach(o => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td class="p-3 text-slate-500">${new Date(o.createdAt).toLocaleDateString()}</td>
+                        <td class="p-3 font-mono font-bold">${o.orderId}</td>
+                        <td class="p-3 font-bold text-slate-800">${o.usdtAmount.toFixed(2)} USDT</td>
+                        <td class="p-3 font-extrabold text-emerald-600">₹${o.expectedInr.toLocaleString('en-IN')}</td>
+                        <td class="p-3 uppercase text-slate-600">${o.payoutMethod}</td>
+                        <td class="p-3"><span class="px-2 py-0.5 rounded-full text-[10px] bg-emerald-100 text-emerald-800 font-bold">Settled</span></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+
+            downloadWalletStatement() {
+                this.showToast('Generating financial account statement PDF...', 'info');
+                setTimeout(() => this.showToast('Statement download complete', 'success'), 1500);
+            }
+
+            // Support & AI Chat
+            openAiChatSupportModal() {
+                const modal = document.getElementById('aiChatModal');
+                modal.classList.remove('hidden');
+
+                const chips = document.getElementById('aiFaqChips');
+                chips.innerHTML = '';
+
+                this.state.aiFaqs.forEach(faq => {
+                    const btn = document.createElement('button');
+                    btn.className = "px-3 py-1 bg-white border border-slate-300 hover:border-purple-500 rounded-full text-[11px] font-semibold text-slate-700 shrink-0 transition";
+                    btn.innerText = faq.q;
+                    btn.onclick = () => this.handleFaqSelect(faq);
+                    chips.appendChild(btn);
+                });
+
+                const messages = document.getElementById('aiChatMessages');
+                if (messages.children.length === 0) {
+                    messages.innerHTML = `
+                        <div class="bg-purple-100 text-purple-900 p-3 rounded-2xl max-w-[85%] space-y-1">
+                            <span class="font-bold block">ForexFlip AI Assistant</span>
+                            <p>Hello! Select a common question below or type your transaction query.</p>
+                        </div>
+                    `;
+                }
+            }
+
+            closeAiChatModal() {
+                document.getElementById('aiChatModal').classList.add('hidden');
+            }
+
+            handleFaqSelect(faq) {
+                const messages = document.getElementById('aiChatMessages');
+                messages.innerHTML += `
+                    <div class="bg-slate-200 text-slate-800 p-2.5 rounded-2xl max-w-[80%] ml-auto font-semibold">
+                        ${faq.q}
+                    </div>
+                    <div class="bg-purple-100 text-purple-900 p-3 rounded-2xl max-w-[85%] mt-2">
+                        ${faq.a}
+                    </div>
+                `;
+                messages.scrollTop = messages.scrollHeight;
+            }
+
+            sendAiChatMessage(e) {
+                e.preventDefault();
+                const input = document.getElementById('aiChatInput');
+                const val = input.value.trim();
+                if (!val) return;
+
+                const messages = document.getElementById('aiChatMessages');
+                messages.innerHTML += `
+                    <div class="bg-slate-200 text-slate-800 p-2.5 rounded-2xl max-w-[80%] ml-auto font-semibold">
+                        ${val}
+                    </div>
+                    <div class="bg-purple-100 text-purple-900 p-3 rounded-2xl max-w-[85%] mt-2">
+                        Thank you for your message. For live transaction escalations, please contact our Telegram Assist desk directly.
+                    </div>
+                `;
+                input.value = '';
+                messages.scrollTop = messages.scrollHeight;
+            }
+
+            // Profile View
+            renderProfileView() {
+                if (!this.state.currentUser) return;
+                const u = this.state.currentUser;
+
+                document.getElementById('profileAvatar').innerText = u.username.charAt(0).toUpperCase();
+                document.getElementById('profileUsername').innerText = u.username;
+                document.getElementById('profileEmail').innerText = u.email;
+                document.getElementById('profileUid').innerText = u.uid;
+                document.getElementById('profileJoinDate').innerText = new Date(u.createdAt).toLocaleDateString();
+                document.getElementById('profileActiveRate').innerText = `₹${this.state.exchangeSettings.usdtRate.toFixed(2)} / USDT`;
+            }
+
+            requestPasswordReset() {
+                this.showToast(`Password reset link dispatched to ${this.state.currentUser.email}`, 'info');
+            }
+
+            // Admin Panel Operations
+            renderAdminMetrics() {
+                document.getElementById('admTotalUsers').innerText = this.state.users.length;
+                document.getElementById('admPendingVouchers').innerText = this.state.orders.filter(o => o.status === 'UNDER_REVIEW').length;
+                document.getElementById('admPendingPayouts').innerText = this.state.orders.filter(o => o.status === 'APPROVED').length;
+                
+                const settledInr = this.state.orders.filter(o => o.status === 'COMPLETED').reduce((sum, o) => sum + o.expectedInr, 0);
+                document.getElementById('admCompletedSettlements').innerText = `₹ ${settledInr.toLocaleString('en-IN')}`;
+            }
+
+            renderAdminVoucherQueue() {
+                const tbody = document.getElementById('adminVoucherQueueBody');
+                tbody.innerHTML = '';
+
+                const pending = this.state.orders.filter(o => o.status === 'UNDER_REVIEW');
+                pending.forEach(o => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td class="p-3 font-mono font-bold">${o.orderId}</td>
+                        <td class="p-3 text-slate-500 font-mono text-[10px]">${o.userId}</td>
+                        <td class="p-3 font-bold">${o.usdtAmount.toFixed(2)} USDT</td>
+                        <td class="p-3 font-extrabold text-emerald-600">₹${o.expectedInr.toLocaleString('en-IN')}</td>
+                        <td class="p-3"><span class="text-blue-600 underline cursor-pointer" onclick="app.viewOrderDetail('${o.orderId}')">View Image</span></td>
+                        <td class="p-3 font-mono text-[10px]">${o.txHash.substring(0, 10)}...</td>
+                        <td class="p-3 flex space-x-1">
+                            <button onclick="app.approveVoucher('${o.orderId}')" class="px-2 py-1 bg-emerald-600 text-white rounded font-bold text-[10px]">Approve</button>
+                            <button onclick="app.rejectVoucherPrompt('${o.orderId}')" class="px-2 py-1 bg-red-600 text-white rounded font-bold text-[10px]">Reject</button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+
+            approveVoucher(orderId) {
+                const o = this.state.orders.find(i => i.orderId === orderId);
+                if (o) {
+                    o.status = 'APPROVED'; // Moves to Payout Queue
+                    this.saveLocalStorage();
+                    this.renderAdminVoucherQueue();
+                    this.showToast(`Voucher #${orderId} approved for INR payout!`, 'success');
+                }
+            }
+
+            rejectVoucherPrompt(orderId) {
+                const reason = prompt("Enter mandatory rejection reason:");
+                if (!reason) return;
+
+                const o = this.state.orders.find(i => i.orderId === orderId);
+                if (o) {
+                    o.status = 'REJECTED';
+                    o.rejectionReason = reason;
+                    this.saveLocalStorage();
+                    this.renderAdminVoucherQueue();
+                    this.showToast(`Voucher #${orderId} rejected`, 'info');
+                }
+            }
+
+            renderAdminPayoutQueue() {
+                const tbody = document.getElementById('adminPayoutQueueBody');
+                tbody.innerHTML = '';
+
+                const queue = this.state.orders.filter(o => o.status === 'APPROVED');
+                queue.forEach(o => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td class="p-3 font-mono font-bold">${o.orderId}</td>
+                        <td class="p-3 font-bold uppercase">${o.payoutMethod}</td>
+                        <td class="p-3 font-mono text-[10px]">${JSON.stringify(o.payoutDetails)}</td>
+                        <td class="p-3 font-extrabold text-emerald-600">₹${o.expectedInr.toLocaleString('en-IN')}</td>
+                        <td class="p-3">
+                            <button onclick="app.completePayout('${o.orderId}')" class="px-2.5 py-1 bg-blue-600 text-white rounded font-bold text-[10px]">Release INR Payout</button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+
+            completePayout(orderId) {
+                const o = this.state.orders.find(i => i.orderId === orderId);
+                if (o) {
+                    o.status = 'COMPLETED';
+                    this.saveLocalStorage();
+                    this.renderAdminPayoutQueue();
+                    this.showToast(`Payout completed for Order #${orderId}`, 'success');
+                }
+            }
+
+            renderAdminUsers() {
+                const tbody = document.getElementById('adminUsersTableBody');
+                tbody.innerHTML = '';
+
+                this.state.users.forEach(u => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td class="p-3 font-bold">${u.username}</td>
+                        <td class="p-3">${u.email}</td>
+                        <td class="p-3 font-mono text-[10px]">${u.uid}</td>
+                        <td class="p-3">${u.isSuspended ? '<span class="text-red-600 font-bold">Suspended</span>' : '<span class="text-emerald-600 font-bold">Active</span>'}</td>
+                        <td class="p-3">
+                            <button onclick="app.toggleUserSuspension('${u.uid}')" class="px-2 py-1 bg-slate-200 text-slate-800 rounded font-bold text-[10px]">
+                                ${u.isSuspended ? 'Reactivate' : 'Suspend'}
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+
+            toggleUserSuspension(uid) {
+                const u = this.state.users.find(i => i.uid === uid);
+                if (u) {
+                    u.isSuspended = !u.isSuspended;
+                    this.saveLocalStorage();
+                    this.renderAdminUsers();
+                    this.showToast(`User ${u.username} status updated`, 'info');
+                }
+            }
+
+            saveExchangeSettings(e) {
+                e.preventDefault();
+                this.state.exchangeSettings.usdtRate = parseFloat(document.getElementById('settingUsdtRate').value);
+                this.state.exchangeSettings.serviceFeePercent = parseFloat(document.getElementById('settingServiceFee').value);
+                this.state.exchangeSettings.minOrderUsdt = parseFloat(document.getElementById('settingMinOrder').value);
+                this.state.exchangeSettings.maxOrderUsdt = parseFloat(document.getElementById('settingMaxOrder').value);
+                this.state.exchangeSettings.maintenanceMode = document.getElementById('settingMaintenanceMode').checked;
+                
+                this.saveLocalStorage();
+                this.updateRateDisplays();
+                this.showToast('Global Exchange Settings Saved!', 'success');
+            }
+
+            updateRateDisplays() {
+                const rateStr = `₹${this.state.exchangeSettings.usdtRate.toFixed(2)} / USDT`;
+                document.getElementById('headerLiveRate').innerText = rateStr;
+                document.querySelectorAll('.previewRate').forEach(e => e.innerText = this.state.exchangeSettings.usdtRate.toFixed(2));
+                document.getElementById('exchangeRateBadge').innerText = `₹${this.state.exchangeSettings.usdtRate.toFixed(2)}`;
+                
+                // Show Maintenance Banner
+                const banner = document.getElementById('maintenanceBanner');
+                if (this.state.exchangeSettings.maintenanceMode) banner.classList.remove('hidden');
+                else banner.classList.add('hidden');
+
+                this.calculateUserExchange();
+            }
+
+            renderAdminNetworks() {
+                const list = document.getElementById('adminNetworksList');
+                list.innerHTML = '';
+
+                this.state.networks.forEach(net => {
+                    const div = document.createElement('div');
+                    div.className = "p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-2";
+                    div.innerHTML = `
+                        <div class="flex justify-between items-center">
+                            <span class="font-bold text-slate-800 text-xs">${net.name}</span>
+                            <span class="text-[10px] font-mono bg-blue-100 text-blue-800 px-2 py-0.5 rounded">${net.asset}</span>
+                        </div>
+                        <span class="font-mono text-[10px] text-slate-600 block truncate">${net.address}</span>
+                    `;
+                    list.appendChild(div);
+                });
+            }
+
+            saveSupportSettings(e) {
+                e.preventDefault();
+                this.state.supportConfig.tgAssistUrl = document.getElementById('settingTgAssistUrl').value;
+                this.state.supportConfig.tgBotUrl = document.getElementById('settingTgBotUrl').value;
+                this.state.supportConfig.newsUrl = document.getElementById('settingNewsUrl').value;
+                this.state.supportConfig.newsTitle = document.getElementById('settingNewsTitle').value;
+
+                this.saveLocalStorage();
+                
+                // Update Links
+                document.getElementById('newsChannelBtn').href = this.state.supportConfig.newsUrl;
+                document.getElementById('newsDisplayName').innerText = this.state.supportConfig.newsTitle;
+
+                this.showToast('Support Config Updated', 'success');
+            }
+
+            saveFirebaseConfig(e) {
+                e.preventDefault();
+                this.showToast('For security, Firebase config is set in the source file, not stored as an admin form setting.', 'info');
+            }
+
+            async testFirebaseConnection() {
+                if (!window.firebaseBridge?.ready) { this.showToast('Firebase config is not ready. Check the Firebase setup block at the bottom of this file.', 'error'); return; }
+                try {
+                    await window.firebaseBridge.testConnection();
+                    document.getElementById('firebaseStatusBadge').className = "text-xs px-2.5 py-1 rounded-full font-bold bg-emerald-100 text-emerald-800";
+                    document.getElementById('firebaseStatusBadge').innerText = "Connected";
+                    this.showToast('Firebase Auth/Firestore connection succeeded.', 'success');
+                } catch (err) {
+                    document.getElementById('firebaseStatusBadge').className = "text-xs px-2.5 py-1 rounded-full font-bold bg-red-100 text-red-800";
+                    document.getElementById('firebaseStatusBadge').innerText = "Connection failed";
+                    this.showToast(window.firebaseBridge.friendlyError(err), 'error');
+                }
+            }
+
+            closeOtpModal() { document.getElementById('otpModal').classList.add('hidden'); }
+
+
+            copySecurityRules() {
+                const text = document.getElementById('securityRulesCode').innerText;
+                navigator.clipboard.writeText(text);
+                this.showToast('Strict starter rules copied. Admin/order backend still needs secure server-side setup.', 'info');
+            }
+
+            // Toast System
+            showToast(msg, type = 'info') {
+                const container = document.getElementById('toastContainer');
+                const toast = document.createElement('div');
+
+                let bgColor = 'bg-slate-800 text-white';
+                if (type === 'success') bgColor = 'bg-emerald-600 text-white';
+                if (type === 'error') bgColor = 'bg-red-600 text-white';
+                if (type === 'warning') bgColor = 'bg-amber-600 text-white';
+
+                toast.className = `${bgColor} px-4 py-3 rounded-xl shadow-xl text-xs font-bold transition transform translate-y-2 pointer-events-auto flex items-center space-x-2`;
+                toast.innerHTML = `<span>${msg}</span>`;
+
+                container.appendChild(toast);
+                setTimeout(() => {
+                    toast.classList.add('opacity-0', '-translate-y-2');
+                    setTimeout(() => toast.remove(), 300);
+                }, 3500);
+            }
+        }
+
+        // Initialize Global ForexFlip Instance
+        let app;
+        window.addEventListener('DOMContentLoaded', () => {
+            app = new ForexFlipApp();
+            window.app = app;
+        });
+    </script>
+
+    <!-- Firebase Auth + limited profile Firestore integration. Exchange orders, payments, settings, and admin actions still need trusted backend integration. -->
+    <script type="module">
+      import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
+      import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, sendEmailVerification, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
+      import { getFirestore, doc, setDoc, getDoc, serverTimestamp, collection, getDocs, limit, query } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
+
+      const firebaseConfig = {
+        apiKey: 'AIzaSyCTBSsfLMwX18X-nkKqNlXYL2g2yQSllk0',
+        authDomain: 'forexflip-18.firebaseapp.com',
+        projectId: 'forexflip-18',
+        storageBucket: 'forexflip-18.firebasestorage.app',
+        messagingSenderId: '828692142118',
+        appId: '1:828692142118:web:2469add1bebaae225e2ee7',
+        measurementId: 'G-08NYH9SP38'
+      };
+      const configured = firebaseConfig.apiKey && !firebaseConfig.apiKey.includes('PASTE_');
+      let auth = null, db = null;
+      if (configured) {
+        const fbApp = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+        auth = getAuth(fbApp); db = getFirestore(fbApp);
+      }
+      const profileFor = async (user, suggestedName='') => {
+        const ref = doc(db, 'users', user.uid);
+        const snap = await getDoc(ref);
+        let profile;
+        if (snap.exists()) {
+          profile = snap.data();
+          if (profile.email !== user.email) throw new Error('PROFILE_EMAIL_MISMATCH');
+        } else {
+          profile = { uid: user.uid, email: user.email || '', username: suggestedName || (user.displayName || (user.email || 'user').split('@')[0]), createdAt: new Date().toISOString(), emailVerified: !!user.emailVerified };
+          await setDoc(ref, profile);
+        }
+        return { uid: user.uid, email: user.email, username: profile.username || suggestedName || (user.email || 'user').split('@')[0], isAdmin: false, isSuspended: false, createdAt: profile.createdAt || new Date().toISOString() };
+      };
+      window.firebaseBridge = {
+        ready: !!configured,
+        async register(email, password, username) {
+          if (!configured) throw new Error('FIREBASE_CONFIG_MISSING');
+          const cred = await createUserWithEmailAndPassword(auth, email, password);
+          await setDoc(doc(db, 'users', cred.user.uid), { uid: cred.user.uid, email, username, createdAt: new Date().toISOString(), emailVerified: false });
+          await sendEmailVerification(cred.user);
+          await signOut(auth);
+        },
+        async login(email, password) {
+          if (!configured) throw new Error('FIREBASE_CONFIG_MISSING');
+          const cred = await signInWithEmailAndPassword(auth, email, password);
+          await cred.user.reload();
+          const user = auth.currentUser;
+          const profile = await profileFor(user);
+          profile.emailVerified = !!user.emailVerified;
+          return { user, profile };
+        },
+        async googleSignIn() {
+          if (!configured) throw new Error('FIREBASE_CONFIG_MISSING');
+          const cred = await signInWithPopup(auth, new GoogleAuthProvider());
+          const profile = await profileFor(cred.user);
+          return { user: cred.user, profile };
+        },
+        async logout() { if (auth) await signOut(auth); },
+        async testConnection() {
+          if (!configured) throw new Error('FIREBASE_CONFIG_MISSING');
+          // Firestore query tests actual database access; production rules may correctly reject it.
+          await getDocs(query(collection(db, 'settings'), limit(1)));
+          return true;
+        },
+        friendlyError(err) {
+          const code = err?.code || err?.message || 'UNKNOWN_ERROR';
+          const map = {
+            'auth/email-already-in-use': 'This email is already registered.',
+            'auth/invalid-email': 'Please enter a valid email address.',
+            'auth/weak-password': 'Password must be at least 6 characters.',
+            'auth/invalid-credential': 'Email or password is incorrect.',
+            'auth/popup-closed-by-user': 'Google sign-in was closed before finishing.',
+            'auth/unauthorized-domain': 'Add this website domain in Firebase Authentication → Settings → Authorized domains.',
+            'permission-denied': 'Firestore rules blocked this request. Check Rules tab.',
+            'FIREBASE_CONFIG_MISSING': 'Check the Firebase Web App configuration in this HTML file.'
+          };
+          return map[code] || `Firebase error: ${code}`;
+        }
+      };
+      if (configured) onAuthStateChanged(auth, async user => {
+        if (!user || !window.app) return;
+        try {
+          const profile = await profileFor(user);
+          if (user.emailVerified || user.providerData.some(p => p.providerId === 'google.com')) {
+            window.app.state.currentUser = profile;
+            window.app.updateUiForAuthState();
+          }
+        } catch (err) { console.error('Firebase profile load failed', err); }
+      });
+      const status = document.getElementById('firebaseStatusBadge');
+      if (status && configured) { status.textContent = 'SDK initialized'; status.className = 'text-xs px-2.5 py-1 rounded-full font-bold bg-blue-100 text-blue-800'; }
+    </script>
+
+</body>
+</html>
